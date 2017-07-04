@@ -54,7 +54,10 @@ object getData {
 //      " where status = 0 and year = \'2017\'" +
       "")
   }
-
+def chooseNotNull(str1: String,str2: String) : String ={
+  if(str1 ==null || str1 == "") str2
+  else str1
+}
   def getFullDataVIPsql(hiveContext: HiveContext)={
 
     def cleanSplitChar(str: String) = {
@@ -62,7 +65,10 @@ object getData {
       else str.replace("|!",";")
     }
 
+
     hiveContext.udf.register("cleanSplitChar", (str: String) =>if(str !="" && str !=null) cleanSplitChar(str) else null)
+
+    hiveContext.udf.register("chooseNotNull", (str1: String,str2: String) =>chooseNotNull(str1,str2))
 
     def getPage(issue: String) = commonClean.cleanIssue(issue,4)(2)
     def getVolume(issue: String) = commonClean.cleanIssue(issue,4)(1)
@@ -94,7 +100,7 @@ object getData {
       "cleanKeyWord('') as keyWordAlt," +
       "cleanInstitute(institute_2) as instituteAll," +
       "getFirstInstitute(cleanInstitute(institute_2)) as institute," +
-      "cleanJournal(journal_name) as journal," +
+      "chooseNotNull(cleanJournal(journal_name),cleanJournal(journal_2)) as journal," +
       "getChineseAbstract(abstract) as abstract," +
       "getEnglishAbstract(abstract) as abstractAlt " +
       "from t_orgjournaldataVIP " +
@@ -115,6 +121,7 @@ object getData {
     }
 
     hiveContext.udf.register("cleanSplitChar", (str: String) =>if(str !="" && str !=null) cleanSplitChar(str) else null)
+    hiveContext.udf.register("chooseNotNull", (str1: String,str2: String) =>chooseNotNull(str1,str2))
 
 //    hiveContext.udf.register("getPage", (str: String) =>if(str !="" && str !=null) getPage(str) else null)
     hiveContext.udf.register("getIssue", (str: String) =>if(str !="" && str !=null) getIssue(str) else null)
@@ -144,7 +151,7 @@ object getData {
       "cleanKeyWord('') as keyWordAlt," +
       "cleanInstitute(institute) as instituteAll," +
       "getFirstInstitute(cleanInstitute(institute)) as institute," +
-      "cleanJournal(journal_name) as journal," +
+      "chooseNotNull(cleanJournal(journal_name),cleanJournal(journal_alt)) as journal," +
       "getChineseAbstract(abstract) as abstract," +
       "getEnglishAbstract(abstract) as abstractAlt " +
       "from t_orgjournaldataWF " +
