@@ -39,25 +39,31 @@ object mainCNKI {
       val orgjournaldata = commonClean.readDataOrg("t_CNKI_UPDATE", hiveContext)
         .filter("status = 0")
 
-
+      logUtil("读入数据CNKI" + orgjournaldata.count())
 
 //        .filter("status = 0").filter("year = 2017").limit(30000)
        orgjournaldata.registerTempTable("t_orgjournaldataCNKI")
 
       val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataCNKI")
+      logUtil("写入Log表" + logData.count())
       WriteData.writeDataLog("t_Log",logData)
 
 
-      val fullInputData=   addCLCName(getData.getFullDataCNKIsql(hiveContext),clcRdd,hiveContext).cache()
+      val fullInputData=   addCLCName(getData.getFullDataCNKIsql(hiveContext),clcRdd,hiveContext)
 
 
 
       hiveContext.dropTempTable("t_orgjournaldataCNKI")
-      val simplifiedInputRdd =
+      val (simplifiedInputRdd,repeatedRdd) =
         distinctRdd.distinctInputRdd(orgjournaldata.map(f =>commonClean.transformRdd_cnki_simplify(f)))
 
       // val simplifiedInputRdd =getSimplifiedInputRdd(CNKIData)
       logUtil("简化后的数据" + simplifiedInputRdd.count())
+
+      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
+      logUtil("重复数据写入" + repeatedRdd.count())
+
+
       val forSplitRdd =getForSplitRdd(fullInputData)
       logUtil("待拆分的数据" + forSplitRdd.count())
 
@@ -106,8 +112,8 @@ object mainCNKI {
       //处理新数据 得到新的journal大表 和 新作者表
       val newAuthorRdd =
         dealNewData0623(joinedGroupedRdd, fullInputData, sourceCoreRdd
-          , journalMagSourceRdd, simplifiedJournalRdd, types
-          , authorRdd, clcRdd, hiveContext, forSplitRdd,universityData)
+          , journalMagSourceRdd, simplifiedJournalRdd, types,inputJoinJournalRdd
+          , authorRdd, clcRdd, hiveContext, forSplitRdd, universityData)
       logUtil("新数据处理成功获得新数据")
 
 

@@ -77,6 +77,9 @@ case class journalCoreJudge(journalName: String,isCore: Int)
   = {
 
 
+//    val rdd_kafka_result_notmatch = joinedGroupedRdd.map(f => (f._1, f._2.take(1).toList.apply(0)._1))
+
+
     val rdd_kafka_result_notmatch: RDD[(String, String)] = inputJoinJournalRdd
       .filter(f => commonOps.getDisMatchRecord(f._2)).groupByKey().map(f => commonOps.getHightestRecord(f))
 

@@ -383,6 +383,8 @@ case class journalCoreJudge(journalName: String,isCore: Int)
                       journalMagSourceRdd: RDD[(String, String)],
                       simplifiedJournalRdd: RDD[(String, (String, String, String, String, String, String))],
                       types: Int,
+                      inputJoinJournalRdd: RDD[(String, ((String, String, String, String, String, String), Option[(String, String, String, String, String, String)]))],
+
                       authorRdd: RDD[((String, String), Any)],
                       CLCRdd: (RDD[(String, (String, String))]),
                       hiveContext: HiveContext
@@ -405,11 +407,22 @@ case class journalCoreJudge(journalName: String,isCore: Int)
     printLog.logUtil("InputData" + fullInputData.count())
 
     /** ****** 相似度小于90的处理开始 *******/
-    val rdd_kafka_result_notmatch = joinedGroupedRdd.map(f => (f._1, f._2.take(1).toList.apply(0)._1))
+//    val rdd_kafka_result_notmatch: RDD[(String, (String, String, String, String, String, String))] = joinedGroupedRdd.map(f => (f._1, f._2.take(1).toList.apply(0)._1))
+
+val matchedId = inputJoinJournalRdd
+  .filter(f => commonOps.getDisMatchRecord(f._2)).map(value=>(value._1,"")).distinct
+    printLog.logUtil("matchCount" + matchedId.count())
+    printLog.logUtil("matchCount" + matchedId.count())
+
+val rdd_kafka_result_notmatch = inputJoinJournalRdd.map(value=> value._1)
+  .distinct.map(value=> (value,""))
+      .leftOuterJoin(matchedId).filter(value => value._2._2.orNull == null)
+  .map(value =>value._1)
+
 
     printLog.logUtil("noMatchRdd" + rdd_kafka_result_notmatch.first())
     val resultNomatchData = hiveContext.createDataFrame(rdd_kafka_result_notmatch.map(
-      value => noMatchData(value._1)
+      value => noMatchData(value)
     ))
     //入库(完整字段）
 

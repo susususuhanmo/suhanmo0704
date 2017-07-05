@@ -65,18 +65,23 @@ object distinctRdd {
     */
   def distinctInputRdd(simplifiedInputRdd
                        : RDD[(String, (String, String, String, String, String, String))])
-                       : RDD[(String, (String, String, String, String, String, String))]
+  : (RDD[(String, (String, String, String, String, String, String))]
+    , RDD[(String, String)])
+
   = {
 
-
-    //    (key, (title, journal, creator, id, institute))
+    val fullId = simplifiedInputRdd.map(value => (value._2._4,""))
+    //    (key, (title, journal, creator, id, institute,year))
     val groupedRdd = simplifiedInputRdd
       .filter(value => value._2._1 != null && value._2._2 != null)
       .groupByKey()
 
-    groupedRdd.flatMap(distinctGroup).filter(value => value != null)
-
-
+    val distinctRdd = groupedRdd.flatMap(distinctGroup).filter(value => value != null)
+    val distinctId = distinctRdd.map(value=>(value._2._4,""))
+    val repeatedRdd: RDD[(String, String)] =
+      fullId.leftOuterJoin(distinctId).filter(value => value._2._2.orNull == null)
+      .map(value => (value._1,"内部重复数据"))
+    (distinctRdd,repeatedRdd)
   }
 
 }

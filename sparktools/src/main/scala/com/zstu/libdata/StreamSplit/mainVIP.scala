@@ -45,16 +45,16 @@ object mainVIP {
       val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataVIP")
       WriteData.writeDataLog("t_Log",logData)
 
-      val fullInputData=  addCLCName(getData.getFullDataVIPsql(hiveContext),clcRdd,hiveContext).cache()
+      val fullInputData=  addCLCName(getData.getFullDataVIPsql(hiveContext),clcRdd,hiveContext)
 
 
 
-      val simplifiedInputRdd =
+      val (simplifiedInputRdd,repeatedRdd) =
         distinctRdd.distinctInputRdd(orgjournaldata.map(f =>commonClean.transformRdd_vip_simplify(f)))
 
 
-
-
+      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
+      logUtil("重复数据写入" + repeatedRdd.count())
 
 
       hiveContext.dropTempTable("t_orgjournaldataVIP")
@@ -106,11 +106,10 @@ object mainVIP {
       logUtil("group成功" + joinedGroupedRdd.count())
 
 
-      //处理新数据 得到新的journal大表 和 新作者表
       val newAuthorRdd =
         dealNewData0623(joinedGroupedRdd, fullInputData, sourceCoreRdd
-          , journalMagSourceRdd, simplifiedJournalRdd, types
-          , authorRdd, clcRdd, hiveContext, forSplitRdd,universityData)
+          , journalMagSourceRdd, simplifiedJournalRdd, types,inputJoinJournalRdd
+          , authorRdd, clcRdd, hiveContext, forSplitRdd, universityData)
       logUtil("新数据处理成功获得新数据")
 
 

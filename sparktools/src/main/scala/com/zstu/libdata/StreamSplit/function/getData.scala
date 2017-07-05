@@ -259,7 +259,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
             getRowString(r,"year")
           )
         ))
-    )
+    )._1
   }
 
   def getForSplitRdd(data:DataFrame): RDD[(String, ((String, String), (String, String, String, String, String)))] = {
@@ -324,7 +324,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
 
 
 
-    (rightRdd,errorRDD.map(value => value._2._4))
+    (rightRdd,errorRDD.map(value => (value._2._4,"缺少标题，期刊或者年份")))
   }
 
 

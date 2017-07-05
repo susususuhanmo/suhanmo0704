@@ -139,8 +139,8 @@ object WriteData {
       year: String, isbn: String,subject: String,classification: String)
   }
 
-  case class errorData(id: String,resource: Int)
-  def writeErrorData(errorRdd:RDD[String],types: Int,hiveContext: HiveContext) ={
+  case class errorData(id: String,message: String,resource: Int)
+  def writeErrorData(errorRdd:RDD[(String,String)],types: Int,hiveContext: HiveContext) ={
 
     val connectProperties = new Properties()
     connectProperties.put("user", "fzj")
@@ -150,7 +150,7 @@ object WriteData {
 
 
     val dataFrame = hiveContext.createDataFrame(errorRdd.map(value =>
-      errorData(value,types)
+      errorData(value._1,value._2,types)
     ))
 
     dataFrame.write.mode(SaveMode.Append).jdbc(sqlUrl, "t_Error", connectProperties)

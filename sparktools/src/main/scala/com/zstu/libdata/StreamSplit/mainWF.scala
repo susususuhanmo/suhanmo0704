@@ -42,22 +42,22 @@ object mainWF {
 
       logUtil("全部数据" + orgjournaldata.count())
 
-      val simplifiedInputRdd =
+      val (simplifiedInputRdd,repeatedRdd) =
         distinctRdd.distinctInputRdd(orgjournaldata.map(f => commonClean.transformRdd_wf_simplify(f)))
+      logUtil("简化后的数据" + simplifiedInputRdd.count())
 
 
-      // val simplifiedInputRdd =getSimplifiedInputRdd(CNKIData)
+      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
+      logUtil("重复数据写入" + repeatedRdd.count())
 
       val fullInputData = addCLCName(getData.getFullDataWFsql(hiveContext),clcRdd,hiveContext)
-
 
       hiveContext.dropTempTable("t_orgjournaldataWF")
 
 
 
 
-//      val simplifiedInputRdd = getSimplifiedInputRdd(fullInputData)
-      logUtil("简化后的数据" + simplifiedInputRdd.count())
+
       val forSplitRdd = getForSplitRdd(fullInputData)
       logUtil("待拆分的数据" + forSplitRdd.count())
 
@@ -84,7 +84,7 @@ object mainWF {
       //处理新数据 得到新的journal大表 和 新作者表
       val newAuthorRdd =
         dealNewData0623(joinedGroupedRdd, fullInputData, sourceCoreRdd
-          , journalMagSourceRdd, simplifiedJournalRdd, types
+          , journalMagSourceRdd, simplifiedJournalRdd, types,inputJoinJournalRdd
           , authorRdd, clcRdd, hiveContext, forSplitRdd, universityData)
       logUtil("新数据处理成功获得新数据")
 
