@@ -126,20 +126,22 @@ object cnkiOps {
     * @return
     */
   def cleanJournal(journal: String): String = {
-    if(journal == null) null
-    else {
-      var journals = deleteInvisibleChar.deleteInvisibleChar(journal)
+    var journals = journal
+    val ischinese = CheckChinese.CheckChinese(journal)
+    if(ischinese == 2){//中文
+      journals = deleteInvisibleChar.deleteInvisibleChar(journal)
       journals = GetReplacedStr.GetReplacedStr(journals)
       if (journals == null) {
         return null
       }
-      val result = CheckChinese.CheckChinese(journals)
-      if (result == 1) {
-        null
-      } else {
-        journals
-      }
     }
+    journals
+    /*val result = CheckChinese.CheckChinese(journals)
+    if (result == 1) {
+      return null
+    } else {
+      journals
+    }*/
   }
   /**
     * 获取中文期刊名
