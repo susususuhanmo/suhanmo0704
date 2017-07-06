@@ -37,23 +37,14 @@ object mainCNKI {
       //    (key, (title, journal, creator, id, institute,year))
 
       val orgjournaldata = commonClean.readDataOrg("t_CNKI_UPDATE", hiveContext)
-        .filter("status = 0")
+        .filter("status = 0").limit(50000).cache()
 
-      logUtil("读入数据CNKI" + orgjournaldata.count())
-
-//        .filter("status = 0").filter("year = 2017").limit(30000)
-       orgjournaldata.registerTempTable("t_orgjournaldataCNKI")
-
-      val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataCNKI")
-      logUtil("写入Log表" + logData.count())
-      WriteData.writeDataLog("t_Log",logData)
-
-
+      orgjournaldata.registerTempTable("t_orgjournaldataCNKI")
       val fullInputData=   addCLCName(getData.getFullDataCNKIsql(hiveContext),clcRdd,hiveContext)
 
 
 
-      hiveContext.dropTempTable("t_orgjournaldataCNKI")
+
       val (simplifiedInputRdd,repeatedRdd) =
         distinctRdd.distinctInputRdd(orgjournaldata.map(f =>commonClean.transformRdd_cnki_simplify(f)))
 
@@ -69,7 +60,7 @@ object mainCNKI {
 
 //      val fullInputRdd  =
 //        orgjournaldata.map(f =>commonClean.transformRdd_cnki_source(f))
-
+//      hiveContext.dropTempTable("t_orgjournaldataCNKI")
 
       // TODO: ....................
 //      val fullInputRdd2  =
@@ -127,6 +118,18 @@ object mainCNKI {
 val num = oldDataOps.dealOldData(fullInputData, types, inputJoinJournalRdd
   , hiveContext)
       logUtil("匹配成功的旧数据处理成功" + num)
+
+
+
+      logUtil("读入数据CNKI" + orgjournaldata.count())
+
+      //        .filter("status = 0").filter("year = 2017").limit(30000)
+
+
+      val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataCNKI")
+      logUtil("写入Log表" + logData.count())
+      WriteData.writeDataLog("t_Log",logData)
+
 
     }catch {
       case ex: Exception => logUtil(ex.getMessage)

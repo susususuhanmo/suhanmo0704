@@ -7,73 +7,70 @@ import org.apache.spark.sql.hive.HiveContext
 import org.joda.time.DateTime
 
 /**
- * Created by SuHanmo on 2017/7/1.
- * AppName: mainAll
- * Function:
- * Input Table:
- * Output Table:
- */
+  * Created by SuHanmo on 2017/7/1.
+  * AppName: mainAll
+  * Function:
+  * Input Table:
+  * Output Table:
+  */
 object mainAll {
 
   val logger = new PrintWriter("./all.txt")
-  var day = 0
+  var day = -1
   var finishedCNKI = false
   var finishedVIP = false
   var finishedWF = false
+  var dayCount = 0
+  var todayRun = Array("CNKI", "WF", "VIP")
 
 
   def main(args: Array[String]) {
     val hiveContext = initSpark("mainALL")
-//    while (true) {
-//      val hourNow = refreshDate
-//      hourNow match {
-//        case 13 => if (!finishedCNKI) run("CNKI",hiveContext)
-//        case 15=> if(!finishedVIP) run("VIP", hiveContext)
-//        case 14=> if(!finishedWF) run("WF",hiveContext)
-//        case _ => Thread.sleep(1000*60*5)
-//      }
-//    }
 
-    //testGitHub
-
-
-    run("VIP", hiveContext)
-    run("CNKI", hiveContext)
-    run("WF", hiveContext)
+    while (true) {
+      val runSource = refreshDate
+      if (runSource != null) {
+        run(runSource, hiveContext)
+      }
+    }
 
 
   }
 
 
-
-
-
-
-  def refreshDate: Int ={
+  def refreshDate: String = {
     val today = DateTime.now().dayOfWeek().get()
     if (today != day) {
-      finishedCNKI = false
-      finishedVIP = false
-      finishedWF = false
+      logger.println("DATE CHANGED!")
+      logger.flush()
+      //若到日期发生改变 改变count（0,1,2）循环
+      if (dayCount == 2) dayCount = 0 else dayCount += 1
+      //更新日期为今日
       day = today
+      //返回应运行的数据源
+      todayRun(dayCount)
     }
-    DateTime.now().hourOfDay().get()
+    //若日期没发生改变，则返回null不运行程序
+    else {
+      Thread.sleep(1000*60*60)
+      null
+    }
   }
 
 
-  def run(source: String,hiveContext:HiveContext) = {
-    logger.println("its time to run "+source+"!!!" + DateTime.now + "\r\n")
+  def run(source: String, hiveContext: HiveContext) = {
+    logger.println("its time to run " + source + "!!!" + DateTime.now + "\r\n")
     logger.flush()
     try {
       source match {
         case "VIP" =>
-          mainVIP.main(hiveContext:HiveContext)
+          mainVIP.main(hiveContext: HiveContext)
           finishedVIP = true
         case "WF" =>
-          mainWF.main(hiveContext:HiveContext)
+          mainWF.main(hiveContext: HiveContext)
           finishedWF = true
         case "CNKI" =>
-          mainCNKI.main(hiveContext:HiveContext)
+          mainCNKI.main(hiveContext: HiveContext)
           finishedCNKI = true
         case _ =>
           logger.println("error:uncorrect source name!" + DateTime.now + "\r\n")

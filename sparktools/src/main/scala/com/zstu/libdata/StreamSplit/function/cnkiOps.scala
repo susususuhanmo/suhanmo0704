@@ -39,6 +39,7 @@ object cnkiOps {
     if(hasNoChinese(author)) return author.replace("|!",";")
 
     var author_tmp = deleteInvisibleChar.deleteInvisibleChar(author.toString)
+      .replace("@@","")
     author_tmp=  GetReplacedStr.GetReplacedStr(author_tmp)
     var creators: Array[String] = author_tmp.split("\\|!")
     if (creators.length ==1){
