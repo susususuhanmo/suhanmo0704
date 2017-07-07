@@ -14,24 +14,32 @@ import scala.util.parsing.json.JSON
   */
 object commonOps {
 
+
+  //todo 查重算法改进
   //找到匹配的记录
-  def getDisMatchRecord(value: ((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])): Boolean = {
-    if (value._2 == None)
+  def getDisMatchRecord(value: ((String, String, String, String, String,String,String)
+    , Option[(String, String, String, String,String,String,String)])): Boolean = {
+//    (key, (title, journal, creator, id,institute,year,issue))
+
+    if (value._2.isEmpty)
       return false
     val data = value._2.get
     if (getSimilarty(value._1._1, data._1, value._1._2, data._2, value._1._3, data._3) > 0.9) {
       //虽然key匹配度>0.9 ,但是只要year不同认为不匹配
       if(value._1._6 !="" && data._6 !="" && value._1._6 != data._6)
-        return  false
+        false
+        //若issue 不同 则不匹配
+      else if(value._1._7 !="" && data._7 !=""&& data._7 !=null &&value._1._7 !=null && value._1._7 != data._7)
+        false
       else
-        return true
+        true
     } else {
-      return false
+      false
     }
   }
 
   //在找到的5条匹配的记录中，返回相似度最高的记录
-  def getHightestRecord(f: (String, Iterable[((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])])): (String, String) = {
+  def getHightestRecord(f: (String, Iterable[((String, String, String, String, String,String,String), Option[(String, String, String, String,String,String,String)])])): (String, String) = {
     val value = f._2
     if (value.size >= 2) {
       val firstData = value.take(1).toList.apply(0)
@@ -99,11 +107,12 @@ object commonOps {
     var subJournal = cutStrOps(journal, 4)
     var creator = r.getString(r.fieldIndex("creatorAll"))
     val id = r.getString(r.fieldIndex("id"))
+    val issue = r.getString(r.fieldIndex("issue"))
     if (subTitle == null) subTitle = ""
     if (subJournal == null) subJournal = ""
     if (creator == null) creator = ""
     val key = subTitle + subJournal
-    (key, (title, journal, creator, id,institute,year))
+    (key, (title, journal, creator, id,institute,year,issue))
   }
 
   /**
@@ -224,7 +233,7 @@ object commonOps {
     * @param dbCreator
     * @return
     */
-  def getSimilarty(matchTitle: String, dbTitle: String, matchJournal: String, dbJournal: String, matchCreator: String, dbCreator: String): Double = {
+  def getSimilartyOld(matchTitle: String, dbTitle: String, matchJournal: String, dbJournal: String, matchCreator: String, dbCreator: String): Double = {
     var same = 0.0
     same += LevenshteinDistance.score(matchTitle, dbTitle) * 0.6
     same += LevenshteinDistance.score(matchJournal, dbJournal) * 0.2
@@ -235,6 +244,17 @@ object commonOps {
   }
 
 
+  def getSimilarty(inputTitle: String, dbTitle: String, inputJournal: String
+                      , dbJournal: String, inputCreator: String, dbCreator: String): Double = {
+    //title0.7 journal 0.2 creator0.1
+//    若creator没有 title0.8 journal 0.2
+    val titleScore = LevenshteinDistance.score(inputTitle, dbTitle)
+    val journalScore = LevenshteinDistance.score(inputJournal, dbJournal)
+    if(inputCreator == null || inputCreator == "" || dbCreator == null || dbCreator == "")
+      titleScore*0.8 + journalScore*0.2
+    else
+      titleScore*0.7 + journalScore*0.2 + LevenshteinDistance.score(inputCreator, dbCreator)*0.1
+  }
 
 
 
@@ -279,7 +299,7 @@ object commonOps {
     *
     * @return
     */
-  def filterErrorRecord(value: (String, String, String, String, String,String)): Boolean = {
+  def filterErrorRecord(value: (String, String, String, String, String,String,String)): Boolean = {
 //    (key, (title, journal, creator, id,institute,year))
 
 
@@ -291,17 +311,7 @@ object commonOps {
       return false
   }
 
-  /**
-    * 获取格式正确的记录
-    *
-    * @param _2
-    * @return
-    */
-  def filterTargetRecord(_2: (String, String, String, String, String,String)): Boolean = {
-    if (_2._1 == null || _2._1.equals("")) return false
-    if (_2._2 == null || _2._2.equals("")) return false
-    else true
-  }
+
 
   /**
    * 设置数据库数据

@@ -1,8 +1,8 @@
 package com.zstu.libdata.StreamSplit
 
+import com.zstu.libdata.StreamSplit.function._
 import com.zstu.libdata.StreamSplit.function.getData._
 import com.zstu.libdata.StreamSplit.function.newDataOps.dealNewData0623
-import com.zstu.libdata.StreamSplit.function._
 import com.zstu.libdata.StreamSplit.function.printLog.logUtil
 import org.apache.spark.sql.hive.HiveContext
 
@@ -94,7 +94,8 @@ object mainCNKI {
       WriteData.writeErrorData(errorRdd,types,hiveContext)
 
       //开始查重 join group
-      val inputJoinJournalRdd = rightInputRdd.leftOuterJoin(simplifiedJournalRdd).map(f => (f._2._1._4, f._2))
+      val inputJoinJournalRdd = rightInputRdd.leftOuterJoin(simplifiedJournalRdd)
+        .map(f => (f._2._1._4, f._2))
       logUtil("join成功" + inputJoinJournalRdd.count())
       val joinedGroupedRdd = inputJoinJournalRdd.groupByKey()
       logUtil("group成功" + joinedGroupedRdd.count())

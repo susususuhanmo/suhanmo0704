@@ -27,12 +27,13 @@ object mainAll {
   def main(args: Array[String]) {
     val hiveContext = initSpark("mainALL")
 
-    while (true) {
-      val runSource = refreshDate
-      if (runSource != null) {
-        run(runSource, hiveContext)
-      }
-    }
+    run("CNKI",hiveContext)
+//    while (true) {
+//      val runSource = refreshDate
+//      if (runSource != null) {
+//        run(runSource, hiveContext)
+//      }
+//    }
 
 
   }

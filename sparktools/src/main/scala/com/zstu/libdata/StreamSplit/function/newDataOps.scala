@@ -377,13 +377,13 @@ case class journalCoreJudge(journalName: String,isCore: Int)
 
   case class noMatchData (idNoMatch: String)
   case class operateAndSource(operater:Int,source:Int)
-  def dealNewData0623(joinedGroupedRdd: RDD[(String, Iterable[((String, String, String, String, String, String), Option[(String, String, String, String, String, String)])])],
+  def dealNewData0623(joinedGroupedRdd: RDD[(String, Iterable[((String, String, String, String, String, String,String), Option[(String, String, String, String, String, String,String)])])],
                       fullInputData: DataFrame,
                       sourceCoreRdd: RDD[(String, String)],
                       journalMagSourceRdd: RDD[(String, String)],
-                      simplifiedJournalRdd: RDD[(String, (String, String, String, String, String, String))],
+                      simplifiedJournalRdd: RDD[(String, (String, String, String, String, String, String,String))],
                       types: Int,
-                      inputJoinJournalRdd: RDD[(String, ((String, String, String, String, String, String), Option[(String, String, String, String, String, String)]))],
+                      inputJoinJournalRdd: RDD[(String, ((String, String, String, String, String, String,String), Option[(String, String, String, String, String, String,String)]))],
 
                       authorRdd: RDD[((String, String), Any)],
                       CLCRdd: (RDD[(String, (String, String))]),

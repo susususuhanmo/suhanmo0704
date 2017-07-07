@@ -36,49 +36,8 @@ object commonClean {
     hehe
   }
 
-  //找到匹配的记录
-  def getDisMatchRecord(value: ((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])): Boolean = {
-    if (value._2 == None)
-      return false
-    val data = value._2.get
-    logUtil("-------------查重新增数据：--------" +value._1 + "-------------"+data)
-    if (getSimilarty(value._1._1, data._1, value._1._2, data._2, value._1._3, data._3) > 0.9) {
-      //虽然key匹配度>0.9 ,但是只要year不同认为不匹配
-      if(value._1._6 !="" && data._6 !="" && value._1._6 != data._6) {
-        logUtil("-------------ffffffffffffffffffffffff-------------")
-        return false
-      }
-      else{
-        logUtil("-------------ttttttttttttttttttttt-------------")
-        return true
-      }
 
-    } else {
-      return false
-    }
-  }
 
-  //在找到的5条匹配的记录中，返回相似度最高的记录
-  def getHightestRecord(f: (String, Iterable[((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])])): (String, String) = {
-    val value = f._2
-    if (value.size >= 2) {
-      val firstData = value.take(1).toList.apply(0)
-      var guid = firstData._2.get._4
-      var simalirt = 0.0
-      var high = getSimilarty(firstData._1._1, firstData._2.get._1, firstData._1._2, firstData._2.get._2, firstData._1._3, firstData._2.get._3)
-      for (i <- 2 to value.size) {
-        val second = value.take(i).toList.apply(0)
-        simalirt = getSimilarty(second._1._1, second._2.get._1, second._1._2, second._2.get._2, second._1._3, second._2.get._3)
-        if (high < simalirt) {
-          high = simalirt
-          guid = second._2.get._4
-        }
-      }
-      (f._1, guid)
-    } else {
-      (f._1, f._2.take(1).toList.apply(0)._2.get._4)
-    }
-  }
 
   val orgdata_sqlUrl = "jdbc:sqlserver://192.168.1.165:1433;DatabaseName=WangZhihong;"
   val orgdata_userName = "ggm"
@@ -198,7 +157,7 @@ object commonClean {
     //var journal2 =r.getString(r.fieldIndex("journal2"))
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute"))
-
+    var issue = r.getString(r.fieldIndex("issue"))
 
     if( title!="" && title !=null ) title = cnkiClean.cleanTitle(title.toUpperCase)
     if( journal !="" && journal !=null) journal = cnkiClean.cleanJournal(journal)
@@ -209,7 +168,7 @@ object commonClean {
     if( creator!="" && creator !=null) creator = cnkiClean.getFirstCreator(cnkiClean.cleanAuthor(creator))
     val key = cutStr(title, 6) + cutStr(journal, 4)
 
-    (key, (title, journal, creator, id,institute,year))
+    (key, (title, journal, creator, id,institute,year,issue))
   }
 
   def transformRdd_cnki_source(r:Row) ={
@@ -261,7 +220,7 @@ object commonClean {
     var journal2 =r.getString(r.fieldIndex("journal_2"))
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute_2"))
-
+    var issue = r.getString(r.fieldIndex("issue"))
     //logUtil("------" +id)
     try{
       if( creator!="" && creator !=null) creator = cnkiClean.getFirstCreator(cnkiClean.cleanVipAuthor(creator,false))
@@ -276,7 +235,7 @@ object commonClean {
     if (journal == null || journal.equals(""))     journal = journal2
     if(institute !="" && institute !=null)      institute = cnkiClean.getFirstInstitute(cnkiClean.cleanInstitute(institute))
     val key = cutStr(title, 6) + cutStr(journal, 4)
-    (key, (title, journal, creator, id,institute,year))
+    (key, (title, journal, creator, id,institute,year,issue))
   }
 
   def transformRdd_vip_source(r:Row) ={
@@ -347,7 +306,7 @@ object commonClean {
     var journal2 =r.getString(r.fieldIndex("journal_alt"))
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute"))
-
+    var issue = r.getString(r.fieldIndex("issue"))
     try{
       if( creator!="" && creator !=null) creator = cnkiClean.getFirstCreator(cnkiClean.cleanAuthor(creator))
     }catch {
@@ -361,7 +320,7 @@ object commonClean {
     if (journal == null || journal.equals(""))     journal = journal2
     if(institute !="" && institute !=null)      institute = cnkiClean.getFirstInstitute(cnkiClean.cleanInstitute(institute))
     val key = cutStr(title, 6) + cutStr(journal, 4)
-    (key, (title, journal, creator, id,institute,year))
+    (key, (title, journal, creator, id,institute,year,issue))
   }
 
   def transformRdd_wf_source(r:Row) ={
@@ -448,102 +407,9 @@ object commonClean {
     flag
   }
 
-  //用于对读取的一批数据的内部匹配，把id不同，但是相似的数据去掉
-  def filterInnerNotMatchData(value: Iterable[((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])]): Boolean = {
-    var flag = true //默认保留该数据
-    //logUtil("-------------内查重数据start-------------------------")
-    value.foreach(f => {
-      val kafkaData = f._1
-      if (f._2 == None) {
-        //flag = true
-      } else {
-        val dbData = f._2.get
-        var kafka_creator = ""
-        if(kafkaData._3 !=null ) kafka_creator = kafkaData._3
-        var db_creator ="";
-        if(dbData._3 !=null) db_creator = dbData._3
 
-        if(kafkaData._4 == dbData._4){
-          //如果id相同，说明是自己跟自己比较，略过不删除
-          //flag = true
-        }else{
-          if (getSimilarty(kafkaData._1, dbData._1, kafkaData._2, dbData._2, kafka_creator, db_creator) > 0.9)
-          {
-            //如果源数据和目标数据相似，且不是同一条数据，则把该数据剔除 ，也就是记录为 false
-            //排除两种情况：都应该记录为true
-            // 一种是相似度相同，但是yeaf不同，认为是不同的数据，不能删除，
-            //二是 dbData的id < kafkaData的id的情况；（保证 A 和 B相似， 指删除A，否则的话，会把所有有相似记录的项都删掉 ）
 
-            if(kafkaData._6 !="" && dbData._6 !="" && kafkaData._6 != dbData._6){
-              //flag = true
-            }else{
-              //logUtil("-------------内查重数据：--------" +kafkaData + "-------------"+dbData)
-              if( StringCompLessThan(kafkaData._4 , dbData._4)==true) //  A.guid < B.guid, 删除 A
-              {
-                //logUtil("-------------okokokokokokok-----------------")
-                flag = false
 
-              }else{
-                //logUtil("-------------nononono-----------------")
-                //flag = true //数据完全相同且id号不同，记录为false
-              }
-            }
-          }
-        }
-      }
-    })
-    if(flag == true)
-      false
-    else
-      true
-  }
-
-  //用于对读取的一批数据的内部匹配，把id不同，但是相似的数据去掉
-  def filterInnerMatchData(value: Iterable[((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])]): Boolean = {
-    var flag = true //默认保留该数据
-    //logUtil("-------------内查重数据start-------------------------")
-    value.foreach(f => {
-      val kafkaData = f._1
-      if (f._2 == None) {
-        flag = true
-      } else {
-        val dbData = f._2.get
-        var kafka_creator = ""
-        if(kafkaData._3 !=null ) kafka_creator = kafkaData._3
-        var db_creator ="";
-        if(dbData._3 !=null) db_creator = dbData._3
-
-        if(kafkaData._4 == dbData._4){
-          //如果id相同，说明是自己跟自己比较，略过不删除
-          //flag = true
-        }else{
-          if (getSimilarty(kafkaData._1, dbData._1, kafkaData._2, dbData._2, kafka_creator, db_creator) > 0.9)
-          {
-            //如果源数据和目标数据相似，且不是同一条数据，则把该数据剔除 ，也就是记录为 false
-            //排除两种情况：都应该记录为true
-            // 一种是相似度相同，但是yeaf不同，认为是不同的数据，不能删除，
-            //二是 dbData的id < kafkaData的id的情况；（保证 A 和 B相似， 指删除A，否则的话，会把所有有相似记录的项都删掉 ）
-
-            if(kafkaData._6 !="" && dbData._6 !="" && kafkaData._6 != dbData._6){
-              //flag = true
-            }else{
-              //logUtil("-------------内查重数据：--------" +kafkaData + "-------------"+dbData)
-              if( StringCompLessThan(kafkaData._4 , dbData._4)==true) //  A.guid < B.guid, 删除 A
-              {
-                //logUtil("-------------okokokokokokok-----------------")
-                flag = false
-                return flag
-              }else{
-                //logUtil("-------------nononono-----------------")
-                //flag = true //数据完全相同且id号不同，记录为false
-              }
-            }
-          }
-        }
-      }
-    })
-    flag
-  }
 
   def StringCompLessThan(A:String,B:String):Boolean = {
     var flag = true
@@ -554,97 +420,11 @@ object commonClean {
     flag
   }
 
-  /**
-    * 查重匹配数据
-    *
-    * @param value :title ,journal creater ,id ,institute,year
-    * @return
-    */
-  def filterDisMatchData(value: Iterable[((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])]): Boolean = {
-    var flagexist = false //默认不存在
-    //logUtil("-------------查重数据start-------------------------")
-    value.foreach(f => {
-      val kafkaData = f._1
-      if (f._2 == None) {
-        //没找到匹配项，不修flagexist
-      } else {
-        val dbData = f._2.get
-        //logUtil("-------------查重新增数据start：--------" +kafkaData + "-------------"+dbData)
-        var kafka_creator = ""
-        if(kafkaData._3 !=null ) kafka_creator = kafkaData._3
-        var db_creator ="";
-        if(dbData._3 !=null) db_creator = dbData._3
-        //logUtil("-------------查重新增数据：--------" +kafkaData._1+","+kafkaData._2+","++kafka_creator + "-------------"+dbData._1+","+dbData._2+","+db_creator)
-        if (getSimilarty(kafkaData._1, dbData._1, kafkaData._2, dbData._2, kafka_creator, db_creator) > 0.9)
-        {
-          //找到相似度 >0.9的数据，但是需要进一步判断是否存在
-          //年份相同
-          if(kafkaData._6 == dbData._6 ){
-            flagexist = true
-          }
-        }else{
-          //logUtil("------------xxxxxxxxxxxxxxxxxxxxxxxx--------")
-        }
-      }
-    })
-    if(flagexist == true)
-      false
-    else
-      true
-  }
-  def filterMatchData(value: Iterable[((String, String, String, String, String,String), Option[(String, String, String, String,String,String)])]): Boolean = {
-    var flagexist = false //默认不存在
-    //logUtil("-------------查重数据start-------------------------")
-    value.foreach(f => {
-      val kafkaData = f._1
-      if (f._2 == None) {
-        //没找到匹配项，不修flagexist
-      } else {
-        val dbData = f._2.get
-        //logUtil("-------------查重新增数据start：--------" +kafkaData + "-------------"+dbData)
-        var kafka_creator = ""
-        if(kafkaData._3 !=null ) kafka_creator = kafkaData._3
-        var db_creator ="";
-        if(dbData._3 !=null) db_creator = dbData._3
-        //logUtil("-------------查重新增数据：--------" +kafkaData._1+","+kafkaData._2+","++kafka_creator + "-------------"+dbData._1+","+dbData._2+","+db_creator)
-        if (getSimilarty(kafkaData._1, dbData._1, kafkaData._2, dbData._2, kafka_creator, db_creator) > 0.9)
-        {
-          //找到相似度 >0.9的数据，但是需要进一步判断是否存在
-          //年份相同
-          if(kafkaData._6 == dbData._6 ){
-            flagexist = true
-          }
-        }else{
-          //logUtil("------------xxxxxxxxxxxxxxxxxxxxxxxx--------")
-        }
-      }
-    })
-    flagexist
-  }
 
 
-  /**
-    * 查询不匹配的数据
-    *
-    * @param value
-    * @return
-    */
-  def disMatchResult(value: Iterable[((String, String, String, String, String), Option[(String, String, String, String)])]): Boolean = {
-    var flag = false
-    value.foreach(f => {
-      val kafkaData = f._1
-      if (f._2 == None) {
-        flag = false
-      } else {
-        val dbData = f._2.get
-        if (getSimilarty(kafkaData._1, dbData._1, kafkaData._2, dbData._2, kafkaData._3, dbData._3) > 0.9) {
-          flag = true
-          return flag
-        }
-      }
-    })
-    flag
-  }
+
+
+
 
 
   /**
@@ -674,30 +454,9 @@ object commonClean {
   }
 
 
-  /**
-    * 相似度计算
-    *
-    * @param matchTitle
-    * @param dbTitle
-    * @param matchJournal
-    * @param dbJournal
-    * @param matchCreator
-    * @param dbCreator
-    * @return
-    */
-  def getSimilarty(matchTitle: String, dbTitle: String, matchJournal: String, dbJournal: String, matchCreator: String, dbCreator: String): Double = {
-    //todo 需要修改
-    var same = 0.0
-    same += LevenshteinDistance.score(matchTitle, dbTitle) * 0.6
-    same += LevenshteinDistance.score(matchJournal, dbJournal) * 0.2
-    var matchCreator1=""
-    var dbCreator1 = ""
-    if(matchCreator != null) matchCreator1 = matchCreator
-    if(dbCreator != null) dbCreator1 = dbCreator
-    if (matchCreator1.length == 0 && matchCreator1.length == 0) same += 0.2
-    else same += LevenshteinDistance.score(matchCreator1, matchCreator1) * 0.2
-    same
-  }
+
+
+
 
   /**
     * 解析kafka的json数据
@@ -1043,13 +802,7 @@ object commonClean {
     else stmt.setNull(25, Types.VARCHAR)
   }
 
-  /**
-   * 设置数据库数据
-   *
-   * @param stmt PreparedStatement
-   * @param f
-   *          (id,title,titleAlt,authorName,allAuthors,keywords,keywordAlt,orgName,allOrgans,year,journal,,issue,defaultUrl,isCore,volume,abstract,abstractAlt
-   */
+
   def setData4newdata2Journal2016(stmt: PreparedStatement, f: (String, String, String, String, String, String, String, String, String, String, String, String, String, String, Int, Int, String,String,String,String), source: Int): Unit = {
     //DataCleanForAll.logUtil("---当前的类型为:---"+source)
     if (insertJudge(f._1))

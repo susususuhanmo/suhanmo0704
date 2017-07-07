@@ -1,11 +1,10 @@
 package com.zstu.libdata.StreamSplit.function
 
 import com.zstu.libdata.StreamSplit.function.CommonTools._
+import com.zstu.libdata.StreamSplit.function.ReadData.{readDataLog, readDataV3}
 import com.zstu.libdata.StreamSplit.function.commonOps._
-import com.zstu.libdata.StreamSplit.function.distinctRdd.distinctInputRdd
-import com.zstu.libdata.StreamSplit.splitAuthor.getCLC.getCLCRdd
-import ReadData.{readDataLog, readDataV3}
 import com.zstu.libdata.StreamSplit.kafka.{cnkiClean, commonClean}
+import com.zstu.libdata.StreamSplit.splitAuthor.getCLC.getCLCRdd
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.{DataFrame, Row}
@@ -239,28 +238,28 @@ def chooseNotNull(str1: String,str2: String) : String ={
     * @param data data
     * @return
     */
-  def getSimplifiedInputRdd(data: DataFrame): RDD[(String, (String, String, String, String, String, String))] ={
-    //    (key, (title, journal, creator, id, institute,year))
-    //val key = cutStr(title, 6) + cutStr(journal, 4)
-    def getJournal(journal1: String,journal2: String) ={
-      if (journal1 == null || journal1 == "" ) {
-        journal2
-      }else journal1
-    }
-    distinctInputRdd(
-      data.map(r =>
-        (
-          cutStr(cnkiOps.cleanTitle(getRowString(r,"title")),6) + cutStr(getRowString(r,"journal"),4),
-          (cnkiOps.cleanTitle(getRowString(r,"title")),
-            cnkiOps.cleanJournal(getRowString(r,"journal")),
-            cnkiOps.getFirstCreator(getRowString(r,"creatorAll")),
-            getRowString(r,"id"),
-            cnkiOps.getFirstInstitute(getRowString(r,"instituteAll")),
-            getRowString(r,"year")
-          )
-        ))
-    )._1
-  }
+//  def getSimplifiedInputRdd(data: DataFrame): RDD[(String, (String, String, String, String, String, String))] ={
+//    //    (key, (title, journal, creator, id, institute,year))
+//    //val key = cutStr(title, 6) + cutStr(journal, 4)
+//    def getJournal(journal1: String,journal2: String) ={
+//      if (journal1 == null || journal1 == "" ) {
+//        journal2
+//      }else journal1
+//    }
+//    distinctInputRdd(
+//      data.map(r =>
+//        (
+//          cutStr(cnkiOps.cleanTitle(getRowString(r,"title")),6) + cutStr(getRowString(r,"journal"),4),
+//          (cnkiOps.cleanTitle(getRowString(r,"title")),
+//            cnkiOps.cleanJournal(getRowString(r,"journal")),
+//            cnkiOps.getFirstCreator(getRowString(r,"creatorAll")),
+//            getRowString(r,"id"),
+//            cnkiOps.getFirstInstitute(getRowString(r,"instituteAll")),
+//            getRowString(r,"year")
+//          )
+//        ))
+//    )._1
+//  }
 
   def getForSplitRdd(data:DataFrame): RDD[(String, ((String, String), (String, String, String, String, String)))] = {
     def cleanKeyword(keyword: String) = {
@@ -315,7 +314,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
     * @param hiveContext        hiveContext
     * @return rightRdd
     */
-  def getRightRddAndReportError(simplifiedInputRdd: RDD[(String, (String, String, String, String, String, String))], hiveContext: HiveContext)= {
+  def getRightRddAndReportError(simplifiedInputRdd: RDD[(String, (String, String, String, String, String, String,String))], hiveContext: HiveContext)= {
     //errorRDD也是一个集合，存放streamingRDD中的错误数据
     val (errorRDD, rightRdd) = (
       simplifiedInputRdd.filter(f => commonOps.filterErrorRecord(f._2))

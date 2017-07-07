@@ -70,7 +70,7 @@ case class journalCoreJudge(journalName: String,isCore: Int)
   case class operateAndSource(operater:Int,source:Int)
   def dealOldData(fullInputData: DataFrame,
                        types: Int,
-                      inputJoinJournalRdd: RDD[(String, ((String, String, String, String, String, String), Option[(String, String, String, String, String, String)]))],
+                      inputJoinJournalRdd: RDD[(String, ((String, String, String, String, String, String,String), Option[(String, String, String, String, String, String,String)]))],
                       hiveContext: HiveContext
                 ): Int
 
