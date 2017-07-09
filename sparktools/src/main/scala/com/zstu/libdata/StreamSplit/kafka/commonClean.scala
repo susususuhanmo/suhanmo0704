@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.zstu.libdata.StreamSplit.KafkaDataClean.ParseCleanUtil
-import com.zstu.libdata.StreamSplit.function.LevenshteinDistance
+import com.zstu.libdata.StreamSplit.function.getData
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.{DataFrame, Row}
@@ -158,7 +158,7 @@ object commonClean {
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute"))
     var issue = r.getString(r.fieldIndex("issue"))
-
+    var volume = null
     if( title!="" && title !=null ) title = cnkiClean.cleanTitle(title.toUpperCase)
     if( journal !="" && journal !=null) journal = cnkiClean.cleanJournal(journal)
     if(institute !="" && institute !=null){
@@ -168,7 +168,7 @@ object commonClean {
     if( creator!="" && creator !=null) creator = cnkiClean.getFirstCreator(cnkiClean.cleanAuthor(creator))
     val key = cutStr(title, 6) + cutStr(journal, 4)
 
-    (key, (title, journal, creator, id,institute,year,issue))
+    (key, (title, journal, creator, id,institute,year,issue,volume))
   }
 
   def transformRdd_cnki_source(r:Row) ={
@@ -221,6 +221,9 @@ object commonClean {
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute_2"))
     var issue = r.getString(r.fieldIndex("issue"))
+
+    var volume = getData.getVolumeVIP(issue)
+    issue = getData.getIssueVIP(issue)
     //logUtil("------" +id)
     try{
       if( creator!="" && creator !=null) creator = cnkiClean.getFirstCreator(cnkiClean.cleanVipAuthor(creator,false))
@@ -235,7 +238,7 @@ object commonClean {
     if (journal == null || journal.equals(""))     journal = journal2
     if(institute !="" && institute !=null)      institute = cnkiClean.getFirstInstitute(cnkiClean.cleanInstitute(institute))
     val key = cutStr(title, 6) + cutStr(journal, 4)
-    (key, (title, journal, creator, id,institute,year,issue))
+    (key, (title, journal, creator, id,institute,year,issue,volume))
   }
 
   def transformRdd_vip_source(r:Row) ={
@@ -307,6 +310,8 @@ object commonClean {
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute"))
     var issue = r.getString(r.fieldIndex("issue"))
+    var volume = getData.getVolumeWF(issue)
+    issue = getData.getIssueWF(issue)
     try{
       if( creator!="" && creator !=null) creator = cnkiClean.getFirstCreator(cnkiClean.cleanAuthor(creator))
     }catch {
@@ -320,7 +325,7 @@ object commonClean {
     if (journal == null || journal.equals(""))     journal = journal2
     if(institute !="" && institute !=null)      institute = cnkiClean.getFirstInstitute(cnkiClean.cleanInstitute(institute))
     val key = cutStr(title, 6) + cutStr(journal, 4)
-    (key, (title, journal, creator, id,institute,year,issue))
+    (key, (title, journal, creator, id,institute,year,issue,volume))
   }
 
   def transformRdd_wf_source(r:Row) ={

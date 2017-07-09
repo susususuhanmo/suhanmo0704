@@ -4,9 +4,8 @@ import com.github.stuxuhai.jpinyin.{PinyinFormat, PinyinHelper}
 import com.zstu.libdata.StreamSplit.function.CommonTools._
 import com.zstu.libdata.StreamSplit.function.Filter
 import com.zstu.libdata.StreamSplit.function.WriteData.writeDataLog
-import com.zstu.libdata.StreamSplit.function.keywordsOps.isNull
-import com.zstu.libdata.StreamSplit.splitAuthor.getCLC.{addCLCRddNew, addCLCRddOld}
 import com.zstu.libdata.StreamSplit.function.getFirstLevelOrgan.getFirstLevelOrgan
+import com.zstu.libdata.StreamSplit.function.keywordsOps.isNull
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
@@ -321,9 +320,16 @@ updateKeyword: String,updateKeywordAlt: String,organization: String)
     val newAuthor: RDD[(String, String, String, String, Any, Int, String)] =
       newAuthorWithoutId.map(value => (value._1, value._2, value._3, value._4, value._5, value._6, newGuid())).cache()
 
+    //(keywordNew,keywordAltNew,subjectNew,paperId,journal)
 
-    val oldAuthorWithSubject: RDD[(String, String, String, String, Any, Int, Any)] = addCLCRddOld(oldAuthor,CLCRdd)
-    val newAuthorWithSubject = addCLCRddNew(newAuthor,CLCRdd)
+
+    val oldAuthorWithSubject =oldAuthor
+
+//      addCLCRddOld(oldAuthor,CLCRdd)
+
+    val newAuthorWithSubject = newAuthor
+
+
 
 //    (author, organ, firstLevelOrgan, isFirstuthor, otherValue,organNum,joinValue)
     //    ((name ,partOrgan),(id,any))
@@ -340,6 +346,8 @@ updateKeyword: String,updateKeywordAlt: String,organization: String)
       )
     )
     val authorIdRdd = authorIdRddNew.union(authorIdRddOld)
+
+
 
 
     val newDataWithoutUniversity = hiveContext
@@ -399,7 +407,13 @@ updateKeyword: String,updateKeywordAlt: String,organization: String)
       .filter("authorId is not null")
     .drop("authorId")
     .distinct()
+
     writeDataLog("t_ExpertLog",finalAuthorData)
+
+
+
+
+
     val candidateResourceRdd = paperAuthorRdd.map(value =>
       (newGuid(),value._8,value._1,value._9,value._8,value._2)).cache
 val candidateResourceData = hiveContext.createDataFrame(

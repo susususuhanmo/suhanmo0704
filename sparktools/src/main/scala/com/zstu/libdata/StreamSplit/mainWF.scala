@@ -33,11 +33,11 @@ object mainWF {
 
 
       val orgjournaldata = commonClean.readDataOrg("t_WF_UPDATE", hiveContext)
-        .filter("status =0").limit(50000).cache()
+        .filter("status =0").limit(1000).cache()
       orgjournaldata.registerTempTable("t_orgjournaldataWF")
 
       val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataWF")
-      WriteData.writeDataLog("t_Log",logData)
+      WriteData.writeDataWangzhihong("t_Log",logData)
 
 
       logUtil("全部数据" + orgjournaldata.count())
@@ -77,13 +77,12 @@ object mainWF {
       //开始查重 join group
       val inputJoinJournalRdd = rightInputRdd.leftOuterJoin(simplifiedJournalRdd).map(f => (f._2._1._4, f._2))
       logUtil("join成功" + inputJoinJournalRdd.count())
-      val joinedGroupedRdd = inputJoinJournalRdd.groupByKey()
-      logUtil("group成功" + joinedGroupedRdd.count())
+
 
 
       //处理新数据 得到新的journal大表 和 新作者表
       val newAuthorRdd =
-        dealNewData0623(joinedGroupedRdd, fullInputData, sourceCoreRdd
+        dealNewData0623( fullInputData, sourceCoreRdd
           , journalMagSourceRdd, simplifiedJournalRdd, types,inputJoinJournalRdd
           , authorRdd, clcRdd, hiveContext, forSplitRdd, universityData)
       logUtil("新数据处理成功获得新数据")

@@ -1,7 +1,7 @@
 package com.zstu.libdata.StreamSplit.function
 
 import com.zstu.libdata.StreamSplit.function.CommonTools._
-import com.zstu.libdata.StreamSplit.function.ReadData.{readDataLog, readDataV3}
+import com.zstu.libdata.StreamSplit.function.ReadData.readDataLog
 import com.zstu.libdata.StreamSplit.function.commonOps._
 import com.zstu.libdata.StreamSplit.kafka.{cnkiClean, commonClean}
 import com.zstu.libdata.StreamSplit.splitAuthor.getCLC.getCLCRdd
@@ -57,6 +57,11 @@ def chooseNotNull(str1: String,str2: String) : String ={
   if(str1 ==null || str1 == "") str2
   else str1
 }
+
+
+  def getPageVIP(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,4)(2)
+  def getVolumeVIP(issue: String) =if(issue == null) null else commonClean.cleanIssue(issue,4)(1)
+  def getIssueVIP(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,4)(0)
   def getFullDataVIPsql(hiveContext: HiveContext)={
 
     def cleanSplitChar(str: String) = {
@@ -69,12 +74,10 @@ def chooseNotNull(str1: String,str2: String) : String ={
 
     hiveContext.udf.register("chooseNotNull", (str1: String,str2: String) =>chooseNotNull(str1,str2))
 
-    def getPage(issue: String) = commonClean.cleanIssue(issue,4)(2)
-    def getVolume(issue: String) = commonClean.cleanIssue(issue,4)(1)
-    def getIssue(issue: String) = commonClean.cleanIssue(issue,4)(0)
-    hiveContext.udf.register("getPage", (str: String) =>if(str !="" && str !=null) getPage(str) else null)
-    hiveContext.udf.register("getIssue", (str: String) =>if(str !="" && str !=null) getIssue(str) else null)
-    hiveContext.udf.register("getVolume", (str: String) =>if(str !="" && str !=null) getVolume(str) else null)
+
+    hiveContext.udf.register("getPage", (str: String) =>if(str !="" && str !=null) getPageVIP(str) else null)
+    hiveContext.udf.register("getIssue", (str: String) =>if(str !="" && str !=null) getIssueVIP(str) else null)
+    hiveContext.udf.register("getVolume", (str: String) =>if(str !="" && str !=null) getVolumeVIP(str) else null)
     hiveContext.udf.register("cleanTitle", (str: String) =>if(str !="" && str !=null) cnkiOps.cleanTitle(str) else null)
     hiveContext.udf.register("getFirstCreator", (str: String) =>if(str !="" && str !=null) cnkiOps.getFirstCreator(str) else null)
     hiveContext.udf.register("cleanAuthor", (str: String) =>if(str !="" && str !=null) cnkiOps.cleanAuthor(str) else null)
@@ -108,12 +111,12 @@ def chooseNotNull(str1: String,str2: String) : String ={
   }
 
 
-
+  def getVolumeWF(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,8)(1)
+  def getIssueWF(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,8)(2)
 
   def getFullDataWFsql(hiveContext: HiveContext)={
 //    def getPage(issue: String) = commonClean.cleanIssue(issue,8)(2)
-    def getVolume(issue: String) = commonClean.cleanIssue(issue,8)(1)
-    def getIssue(issue: String) = commonClean.cleanIssue(issue,8)(2)
+
     def cleanSplitChar(str: String) = {
       if(str == null) null
       else str.replace("|!",";")
@@ -123,8 +126,8 @@ def chooseNotNull(str1: String,str2: String) : String ={
     hiveContext.udf.register("chooseNotNull", (str1: String,str2: String) =>chooseNotNull(str1,str2))
 
 //    hiveContext.udf.register("getPage", (str: String) =>if(str !="" && str !=null) getPage(str) else null)
-    hiveContext.udf.register("getIssue", (str: String) =>if(str !="" && str !=null) getIssue(str) else null)
-    hiveContext.udf.register("getVolume", (str: String) =>if(str !="" && str !=null) getVolume(str) else null)
+    hiveContext.udf.register("getIssue", (str: String) =>if(str !="" && str !=null) getIssueWF(str) else null)
+    hiveContext.udf.register("getVolume", (str: String) =>if(str !="" && str !=null) getVolumeWF(str) else null)
 
     hiveContext.udf.register("cleanTitle", (str: String) =>if(str !="" && str !=null) cnkiOps.cleanTitle(str) else null)
     hiveContext.udf.register("getFirstCreator", (str: String) =>if(str !="" && str !=null) cnkiOps.getFirstCreator(str) else null)
@@ -185,16 +188,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
     val CLCRdd = getCLCRdd(hiveContext)
 
 
-    val authorRddOld: RDD[((String, String), Any)] = readDataV3("t_Author_withSubjectAndKeyword_kid", hiveContext)
-      .map(row =>
-        ((row.getString(row.fieldIndex("name"))
-          , row.getString(row.fieldIndex("partOrgan"))),
-          (row.getString(row.fieldIndex("id")),
-            row.getString(row.fieldIndex("subjects")),
-              row.getString(row.fieldIndex("keywords")),
-            row.getString(row.fieldIndex("keywordAlt"))
-          )
-          ))
+
 
 
     val authorRdd :RDD[((String, String), Any)] = readDataLog("t_CandidateExpert", hiveContext)
@@ -205,17 +199,21 @@ def chooseNotNull(str1: String,str2: String) : String ={
             row.getString(row.fieldIndex("subject")),
             row.getString(row.fieldIndex("keyword")),
             null)
-          )
-        )
+          ))
     val universityData = readDataLog("t_University2015",hiveContext)
     .select("name","province","area","english")
       .withColumnRenamed("english","altOrganization")
       .withColumnRenamed("name","university")
     .withColumnRenamed("area","city")
 
-    val simplifiedJournalRdd = readDataLog("t_UnionResource2017", hiveContext)
-        .unionAll(readDataLog("t_UnionResource2016", hiveContext))
+    //    [CERSv4].[dbo].[t_UnionResource]
+//    val unionData = readDataCERSv4("t_UnionResource",hiveContext)
+//      .filter("year >= 2016 and resourceCode = 'J'")
+
+    val simplifiedJournalRdd =  readDataLog("t_UnionResource2016", hiveContext)
+        .unionAll(readDataLog("t_UnionResource2017", hiveContext))
       .map(f => transformRdd(f))
+
     val sourceCoreRdd = readDataLog("t_JournalCore", hiveContext)
       .map(f => (f.getString(f.fieldIndex("name")), "1"))
     val journalMagSourceRdd = readDataLog("t_JournalMag", hiveContext)
@@ -314,7 +312,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
     * @param hiveContext        hiveContext
     * @return rightRdd
     */
-  def getRightRddAndReportError(simplifiedInputRdd: RDD[(String, (String, String, String, String, String, String,String))], hiveContext: HiveContext)= {
+  def getRightRddAndReportError(simplifiedInputRdd: RDD[(String, (String, String, String, String, String, String,String,String))], hiveContext: HiveContext)= {
     //errorRDD也是一个集合，存放streamingRDD中的错误数据
     val (errorRDD, rightRdd) = (
       simplifiedInputRdd.filter(f => commonOps.filterErrorRecord(f._2))

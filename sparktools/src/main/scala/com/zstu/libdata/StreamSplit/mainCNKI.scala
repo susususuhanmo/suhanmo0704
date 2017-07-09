@@ -37,7 +37,7 @@ object mainCNKI {
       //    (key, (title, journal, creator, id, institute,year))
 
       val orgjournaldata = commonClean.readDataOrg("t_CNKI_UPDATE", hiveContext)
-        .filter("status = 0").limit(50000).cache()
+        .filter("status = 0").limit(1000).cache()
 
       orgjournaldata.registerTempTable("t_orgjournaldataCNKI")
       val fullInputData=   addCLCName(getData.getFullDataCNKIsql(hiveContext),clcRdd,hiveContext)
@@ -58,32 +58,7 @@ object mainCNKI {
       val forSplitRdd =getForSplitRdd(fullInputData)
       logUtil("待拆分的数据" + forSplitRdd.count())
 
-//      val fullInputRdd  =
-//        orgjournaldata.map(f =>commonClean.transformRdd_cnki_source(f))
-//      hiveContext.dropTempTable("t_orgjournaldataCNKI")
 
-      // TODO: ....................
-//      val fullInputRdd2  =
-//        orgjournaldata.map(f =>getData.transformRdd_cnki_source(f))
-
-//      val fullInputData = addCLCName(hiveContext.createDataFrame(fullInputRdd2)
-//      .withColumnRenamed("abstractcont","abstract")
-//      .withColumnRenamed("abstract_alt","abstractAlt"),clcRdd,hiveContext)
-
-
-
-      // TODO: ....................
-
-
-
-
-
-
-
-
-
-
-      // val fullInputRdd = getFullInputRdd(CNKIData)
 //      logUtil("完整字段数据" + fullInputRdd.count())
 
 
@@ -103,7 +78,7 @@ object mainCNKI {
 
       //处理新数据 得到新的journal大表 和 新作者表
       val newAuthorRdd =
-        dealNewData0623(joinedGroupedRdd, fullInputData, sourceCoreRdd
+        dealNewData0623( fullInputData, sourceCoreRdd
           , journalMagSourceRdd, simplifiedJournalRdd, types,inputJoinJournalRdd
           , authorRdd, clcRdd, hiveContext, forSplitRdd, universityData)
       logUtil("新数据处理成功获得新数据")
@@ -129,7 +104,7 @@ val num = oldDataOps.dealOldData(fullInputData, types, inputJoinJournalRdd
 
       val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataCNKI")
       logUtil("写入Log表" + logData.count())
-      WriteData.writeDataLog("t_Log",logData)
+      WriteData.writeDataWangzhihong("t_Log",logData)
 
 
     }catch {

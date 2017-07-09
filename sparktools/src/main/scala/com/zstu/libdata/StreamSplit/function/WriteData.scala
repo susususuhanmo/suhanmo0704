@@ -57,6 +57,16 @@ object WriteData {
     dataFrame.write.mode(SaveMode.Append).jdbc(sqlUrl, tableName, connectProperties)
 
   }
+  def writeDataWangzhihong(tableName: String, dataFrame: DataFrame): Unit = {
+    //设置好连接属性用于写数据
+    val connectProperties = new Properties()
+    connectProperties.put("user", "shm")
+    connectProperties.put("password", "shm@092011")
+    Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance()
+    val sqlUrl = "jdbc:sqlserver://192.168.1.165:1433;DatabaseName=WangZhihong;"
+    dataFrame.write.mode(SaveMode.Append).jdbc(sqlUrl, tableName, connectProperties)
+
+  }
   def writeDataDiscoveryV2(tableName: String,dataFrame: DataFrame): Unit = {
     //设置好连接属性用于写数据
     val connectProperties = new Properties()
@@ -143,10 +153,10 @@ object WriteData {
   def writeErrorData(errorRdd:RDD[(String,String)],types: Int,hiveContext: HiveContext) ={
 
     val connectProperties = new Properties()
-    connectProperties.put("user", "fzj")
-    connectProperties.put("password", "fzj@zju")
+    connectProperties.put("user", "shm")
+    connectProperties.put("password", "shm@092011")
     Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance()
-    val sqlUrl = "jdbc:sqlserver://192.168.1.160:1433;DatabaseName=Log;"
+    val sqlUrl = "jdbc:sqlserver://192.168.1.165:1433;DatabaseName=WangZhihong;"
 
 
     val dataFrame = hiveContext.createDataFrame(errorRdd.map(value =>

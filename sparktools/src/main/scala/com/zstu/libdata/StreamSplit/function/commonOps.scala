@@ -17,8 +17,8 @@ object commonOps {
 
   //todo 查重算法改进
   //找到匹配的记录
-  def getDisMatchRecord(value: ((String, String, String, String, String,String,String)
-    , Option[(String, String, String, String,String,String,String)])): Boolean = {
+  def getDisMatchRecord(value: ((String, String, String, String, String,String,String,String)
+    , Option[(String, String, String, String,String,String,String,String)])): Boolean = {
 //    (key, (title, journal, creator, id,institute,year,issue))
 
     if (value._2.isEmpty)
@@ -31,6 +31,8 @@ object commonOps {
         //若issue 不同 则不匹配
       else if(value._1._7 !="" && data._7 !=""&& data._7 !=null &&value._1._7 !=null && value._1._7 != data._7)
         false
+      else if(value._1._8 !="" && data._8 !=""&& data._8 !=null &&value._1._8 !=null && value._1._8 != data._8)
+        false
       else
         true
     } else {
@@ -39,7 +41,7 @@ object commonOps {
   }
 
   //在找到的5条匹配的记录中，返回相似度最高的记录
-  def getHightestRecord(f: (String, Iterable[((String, String, String, String, String,String,String), Option[(String, String, String, String,String,String,String)])])): (String, String) = {
+  def getHightestRecord(f: (String, Iterable[((String, String, String, String, String,String,String,String), Option[(String, String, String, String,String,String,String,String)])])): (String, String) = {
     val value = f._2
     if (value.size >= 2) {
       val firstData = value.take(1).toList.apply(0)
@@ -108,11 +110,12 @@ object commonOps {
     var creator = r.getString(r.fieldIndex("creatorAll"))
     val id = r.getString(r.fieldIndex("id"))
     val issue = r.getString(r.fieldIndex("issue"))
+    val volume = r.getString(r.fieldIndex("volume"))
     if (subTitle == null) subTitle = ""
     if (subJournal == null) subJournal = ""
     if (creator == null) creator = ""
     val key = subTitle + subJournal
-    (key, (title, journal, creator, id,institute,year,issue))
+    (key, (title, journal, creator, id,institute,year,issue,volume))
   }
 
   /**
@@ -299,7 +302,7 @@ object commonOps {
     *
     * @return
     */
-  def filterErrorRecord(value: (String, String, String, String, String,String,String)): Boolean = {
+  def filterErrorRecord(value: (String, String, String, String, String,String,String,String)): Boolean = {
 //    (key, (title, journal, creator, id,institute,year))
 
 
@@ -709,7 +712,7 @@ object commonOps {
 
   def insertJudge(col: String): Boolean = {
     if (col == null || col.equals(""))
-      return false
+      false
     else true
   }
 
@@ -721,7 +724,7 @@ object commonOps {
     val str = "{\"year\":\"2016\",\"code\":\"670348458\",\"url\":\"http:\\/\\/lib.cqvip.com\\/qk\\/71697X\\/201611\\/670348458.html\",\"catalog\":\"\\u4e2d\\u6587\\u79d1\\u6280\\u671f\\u520a\\u6570\\u636e\\u5e93==>\\u671f\\u520a\\u5bfc\\u822a==>\\u521b\\u65b0\\u4f5c\\u6587\\uff1a\\u5c0f\\u5b663-4\\u5e74\\u7ea7==>2016\\u5e7411\\u671f\",\"title\":\"\\u74f6\\u5b50\\u91cc\\u7684\\u738b\\u5b50\",\"title_alt\":null,\"creator\":\"\\u6881\\u5434\",\"creator_all\":null,\"institute\":\"\\u5e7f\\u897f\\u5357\\u5b81\\u5e02\\u51e4\\u7fd4\\u8def\\u5c0f\\u5b66\\u56db(6)\\u73ed\",\"journal\":\"\\u521b\\u65b0\\u4f5c\\u6587\\uff1a\\u5c0f\\u5b663-4\\u5e74\\u7ea7=>2016\\u5e74\\u7b2c0\\u5377\\u7b2c11\\u671f 34-34\\u9875,\\u51711\\u9875\",\"journal_alt\":null,\"fund\":null,\"abstract\":\"\\u5357\\u65b9\\u8bd7\\u8001\\u5e08\\u7684\\u8bdd\\uff1a\\u5728\\u770b\\u7ae5\\u8bdd\\u300a\\u62c7\\u6307\\u59d1\\u5a18\\u300b\\u7684\\u65f6\\u5019,\\u6211\\u4eec\\u7684\\u8111\\u5b50\\u91cc\\u5c31\\u6709\\u4e86\\u8fd9\\u4e48\\u4e00\\u4e2a\\u5c0f\\u5c0f\\u7684\\u5750\\u5728\\u82b1\\u74e3\\u4e0a\\u7684\\u4eba\\u513f.\\u54a6,\\u8fd9\\u4e2a\\u4e16\\u754c\\u4e0a\\u4f1a\\u4e0d\\u4f1a\\u4e5f\\u6709\\u8fd9\\u4e48\\u4e00\\u4e2a\\u5c0f\\u4eba\\u513f\\u5750\\u5728\\u900f\\u660e\\u7684\\u73bb\\u7483\\u74f6\\u91cc,\\u6f02\\u5728\\u5927\\u6d77\\u4e0a\\u5bfb\\u627e\\u4ed6\\u60f3\\u8981\\u7684\\u5e78\\u798f\\u5462\\uff1f\\u8fd9\\u4e48\\u4e00\\u60f3,\\u5c31\\u6709\\u4e86\\u4e0b\\u9762\\u8fd9\\u4e24\\u4e2a\\u7ae5\\u8bdd\\u6545\\u4e8b.\",\"abstract_alt\":null,\"keyword\":\"\\u738b\\u5b50|!\\u73bb\\u7483\\u74f6|!\\u7ae5\\u8bdd\",\"keyword_alt\":null,\"subject\":\"\\u5206 \\u7c7b \\u53f7\\uff1a TQ171.68 [\\u5de5\\u4e1a\\u6280\\u672f > \\u5316\\u5b66\\u5de5\\u4e1a > \\u7845\\u9178\\u76d0\\u5de5\\u4e1a > \\u73bb\\u7483\\u5de5\\u4e1a > \\u751f\\u4ea7\\u8fc7\\u7a0b\\u4e0e\\u8bbe\\u5907 > \\u5236\\u54c1\\u52a0\\u5de5\\u5de5\\u827a\\uff08\\u518d\\u6210\\u578b\\uff09\\u53ca\\u8bbe\\u5907]\",\"aboutdate\":null,\"creator_intro\":null,\"reference\":\"\",\"similarliterature\":\"\\u74f6\\u5b50\\u91cc\\u7684\\u738b\\u5b50=>\\/qk\\/71697X\\/201611\\/670348458.html;;;\\u4e8c\\u6c27\\u5316\\u949b\\u8584\\u819c\\u7535\\u6781\\u7684\\u5236\\u5907\\u53ca\\u5206\\u6790=>\\/qk\\/96274A\\/201630\\/670260753.html;;;\\u672c\\u520a\\u5f81\\u7a3f\\u542f\\u4e8b=>\\/qk\\/90499X\\/201610\\/670459386.html;;;PLC\\u5728\\u7535\\u6c14\\u81ea\\u52a8\\u63a7\\u5236\\u4e2d\\u7684\\u5e94\\u7528=>\\/qk\\/80675A\\/201621\\/670409427.html;;;Highly Efficient Power Conversion from Salinity Gradients with Ion-Selective Polymeric Nanopores=>\\/qk\\/84212X\\/201609\\/670182018.html;;;\\u8499\\u7802\\u73bb\\u7483\\u7684\\u7814\\u5236\\u4e0e\\u5438\\u5149\\u6548\\u5e94\\u7684\\u8868\\u5f81=>\\/qk\\/95166X\\/201604\\/669477109.html;;;\\u9ad8\\u5f3a\\u5ea6\\u5316\\u5b66\\u94a2\\u5316\\u94a0\\u9499\\u73bb\\u7483\\u201cARMOREX\\uff08R\\uff09\\u201d=>\\/qk\\/91373X\\/201604\\/670200953.html;;;\\u8d85\\u58f0\\u632f\\u52a8\\u94e3\\u524a\\u5149\\u5b66\\u73bb\\u7483\\u6750\\u6599\\u8868\\u9762\\u8d28\\u91cf\\u7814\\u7a76=>\\/qk\\/70459X\\/201617\\/83687174504849544955484953.html;;;High haze textured surface B-doped ZnO-TCO films on wet-chemically etched glass substrates for thin film solar cells=>\\/qk\\/94689X\\/201608\\/669996383.html;;;\\u73bb\\u7483\\u6df1\\u52a0\\u5de5\\u5de5\\u5382\\u7684\\u5de5\\u4e1a4\\uff0e0=>\\/qk\\/97223A\\/201608\\/670219816.html\",\"updatetime\":\"2017-04-24 18:02:48.087\",\"id\":\"236860\",\"journal_name\":\"\\u521b\\u65b0\\u4f5c\\u6587\\uff1a\\u5c0f\\u5b663-4\\u5e74\\u7ea7\",\"creator_2\":\"\\u6881\\u5434\",\"institute_2\":\"\\u5e7f\\u897f\\u5357\\u5b81\\u5e02\\u51e4\\u7fd4\\u8def\\u5c0f\\u5b66\\u56db(6)\\u73ed\",\"journal_2\":\"\\u521b\\u65b0\\u4f5c\\u6587\\uff1a\\u5c0f\\u5b66\\u5e74\\u7ea7\",\"issue\":\"2016\\u5e74\\u7b2c0\\u5377\\u7b2c11\\u671f 34-34\\u9875,\\u51711\\u9875\",\"subject_2\":\"TQ171.68\",\"guid\":\"6C424426-D528-E711-AECF-0050569B7A51\",\"status\":\"1\",\"from\":\"vip\"}"
     val jsonStr = JSON.parseFull(str)
     jsonStr match {
-      case Some(jsonMap: Map[String, Any]) => {
+      case Some(jsonMap: Map[String, Any]) =>
         var creator = ""
         var title = ""
         var journal = ""
@@ -740,7 +743,6 @@ object commonOps {
         if (isUseful(jsonMap, "institute_2")) institute = cnkiOps.getFirstInstitute(cnkiOps.cleanInstitute(jsonMap("institute_2").toString))
         val key = cutStrOps(title, 6) + cutStrOps(journal, 4)
         println(key + "---" + journal + "---" + creator + "---" + id + "---" + institute)
-      }
     }
   }
 }

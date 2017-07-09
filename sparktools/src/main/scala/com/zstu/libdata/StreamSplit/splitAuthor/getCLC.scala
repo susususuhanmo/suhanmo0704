@@ -80,7 +80,8 @@ object getCLC {
     * @param CLCRdd
     * @return
     */
-  def addCLCRddOld(inputRdd :RDD[(String, String, String, String, Any, Int, Any)],CLCRdd: (RDD[(String, (String, String))])) ={
+  def addCLCRddOld(inputRdd :RDD[(String, String, String, String, Any, Int, Any)],CLCRdd: (RDD[(String, (String, String))]))
+  : RDD[(String, String, String, String, Any, Int, Any)] ={
     def getAny5(any: Any):(String,String,String,String,String) = {
       def myToString(a:Any):String ={
         if (a == null)  null

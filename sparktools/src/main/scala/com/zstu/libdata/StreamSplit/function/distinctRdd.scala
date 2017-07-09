@@ -13,12 +13,12 @@ object distinctRdd {
     * @param keyAndValue  输入数据，key相同。
     * @return 去重分开之后的数据
     */
-  def distinctGroup(keyAndValue: (String, Iterable[(String, String, String, String, String, String,String)]))
+  def distinctGroup(keyAndValue: (String, Iterable[(String, String, String, String, String, String,String,String)])): ArrayBuffer[(String, (String, String, String, String, String, String, String,String))]
   = {
     //      (key, (title, journal, creator, id, institute))
     val (key, value) = keyAndValue
     val valueArray = value.toArray
-    val resultArray = ArrayBuffer[(String,(String, String, String, String, String, String,String))]()
+    val resultArray = ArrayBuffer[(String,(String, String, String, String, String, String,String,String))]()
 
     /**
       * 根据(leftTitle,leftJounal,leftCreator)判断两个数据是否相同
@@ -64,8 +64,8 @@ object distinctRdd {
     * @return 去重后的输入数据
     */
   def distinctInputRdd(simplifiedInputRdd
-                       : RDD[(String, (String, String, String, String, String, String,String))])
-  : (RDD[(String, (String, String, String, String, String, String,String))]
+                       : RDD[(String, (String, String, String, String, String, String,String,String))])
+  : (RDD[(String, (String, String, String, String, String, String,String,String))]
     , RDD[(String, String)])
 
   = {

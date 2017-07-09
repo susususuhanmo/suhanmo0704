@@ -37,13 +37,13 @@ object mainVIP {
       //    (key, (title, journal, creator, id, institute,year))
 
       val orgjournaldata = commonClean.readDataOrg("t_VIP_UPDATE", hiveContext)
-        .filter("status = 0").limit(50000).cache()
+        .filter("status = 0").limit(1000).cache()
       orgjournaldata.registerTempTable("t_orgjournaldataVIP")
 
 
 
       val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataVIP")
-      WriteData.writeDataLog("t_Log",logData)
+      WriteData.writeDataWangzhihong("t_Log",logData)
 
       val fullInputData=  addCLCName(getData.getFullDataVIPsql(hiveContext),clcRdd,hiveContext)
 
@@ -107,7 +107,7 @@ object mainVIP {
 
 
       val newAuthorRdd =
-        dealNewData0623(joinedGroupedRdd, fullInputData, sourceCoreRdd
+        dealNewData0623( fullInputData, sourceCoreRdd
           , journalMagSourceRdd, simplifiedJournalRdd, types,inputJoinJournalRdd
           , authorRdd, clcRdd, hiveContext, forSplitRdd, universityData)
       logUtil("新数据处理成功获得新数据")
