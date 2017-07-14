@@ -83,9 +83,9 @@ case class journalCoreJudge(journalName: String,isCore: Int)
     val rdd_kafka_result_notmatch: RDD[(String, String)] = inputJoinJournalRdd
       .filter(f => commonOps.getDisMatchRecord(f._2)).groupByKey().map(f => commonOps.getHightestRecord(f))
 
+    if(rdd_kafka_result_notmatch.count() == 0) return 1
 
-
-    printLog.logUtil("MatchRdd" + rdd_kafka_result_notmatch.first())
+    printLog.logUtil("MatchRdd" + rdd_kafka_result_notmatch.count())
     val resultNomatchData = hiveContext.createDataFrame(rdd_kafka_result_notmatch.map(
       value => noMatchData(value._1,value._2)
     ))
@@ -96,7 +96,7 @@ case class journalCoreJudge(journalName: String,isCore: Int)
     val noMatchFullData = fullInputData.join(resultNomatchData,
       fullInputData("id") === resultNomatchData("idNoMatch"))
       .drop("idNoMatch")
-    printLog.logUtil("MatchRddfullData" + noMatchFullData.first())
+    printLog.logUtil("MatchRddfullData" + noMatchFullData.count())
 
 
 
@@ -117,8 +117,8 @@ case class journalCoreJudge(journalName: String,isCore: Int)
 
     WriteData.writeDataLog("t_JournalLog",resultData)
 
-    WriteData.writeDataDiscoveryV2("t_JournalLog",resultData
-      .drop("candidateResources").drop("subject").filter("isCore = 1"))
+//    WriteData.writeDataDiscoveryV2("t_JournalLog",resultData
+//      .drop("candidateResources").drop("subject").filter("isCore = 1"))
     1
 
   }

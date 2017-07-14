@@ -1,8 +1,7 @@
 package com.zstu.libdata.StreamSplit.function
 
 import com.zstu.libdata.StreamSplit.KafkaDataClean.ParseCleanUtil
-
-import CommonTools.hasNoChinese
+import CommonTools.{hasNoChinese, splitStr}
 /**
   * Created by xiangjh on 2017/4/2.
   */
@@ -85,7 +84,7 @@ object cnkiOps {
     * @param institute
     * @return
     */
-  def cleanInstitute(institute: String): String = {
+  def cleanInstituteOld(institute: String): String = {
     val institutions: Array[String] = deleteInvisibleChar.deleteInvisibleChar(institute).split("\\|!")
     var institution = ""
     for (i <- institutions.indices) {
@@ -94,6 +93,18 @@ object cnkiOps {
     }
     institution = institution.substring(0, institution.lastIndexOf(";"))
     institution
+  }
+  def cleanInstitute(institute: String): String ={
+    def getStrBefore(str: String):String={
+      if(str == null) null
+      else {
+        val rtn = str.replace("，",",").replace("|!",";")
+        if(rtn.indexOf(",") >=0) rtn.substring(0,rtn.indexOf(","))
+        else rtn
+      }
+    }
+    if(institute == null) null
+    else splitStr(institute).map(getStrBefore(_).trim).reduce(_+";"+_)
   }
 
   def getFirstInstitute(institute: String): String = {

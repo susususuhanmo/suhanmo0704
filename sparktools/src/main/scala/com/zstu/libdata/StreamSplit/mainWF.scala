@@ -33,7 +33,7 @@ object mainWF {
 
 
       val orgjournaldata = commonClean.readDataOrg("t_WF_UPDATE", hiveContext)
-        .filter("status =0").limit(1000).cache()
+        .filter("status != 1 and status != 3 and year =2017").limit(50000).cache()
       orgjournaldata.registerTempTable("t_orgjournaldataWF")
 
       val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataWF")

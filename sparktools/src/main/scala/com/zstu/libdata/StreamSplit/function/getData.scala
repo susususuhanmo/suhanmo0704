@@ -59,9 +59,9 @@ def chooseNotNull(str1: String,str2: String) : String ={
 }
 
 
-  def getPageVIP(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,4)(2)
-  def getVolumeVIP(issue: String) =if(issue == null) null else commonClean.cleanIssue(issue,4)(1)
-  def getIssueVIP(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,4)(0)
+  def getPageVIP(issue: String) = if(issue == null) null else deleteZero.deleteZero(commonClean.cleanIssue(issue,4)(2))
+  def getVolumeVIP(issue: String) =if(issue == null) null else deleteZero.deleteZero(commonClean.cleanIssue(issue,4)(1))
+  def getIssueVIP(issue: String) = if(issue == null) null else deleteZero.deleteZero(commonClean.cleanIssue(issue,4)(0))
   def getFullDataVIPsql(hiveContext: HiveContext)={
 
     def cleanSplitChar(str: String) = {
@@ -111,8 +111,8 @@ def chooseNotNull(str1: String,str2: String) : String ={
   }
 
 
-  def getVolumeWF(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,8)(1)
-  def getIssueWF(issue: String) = if(issue == null) null else commonClean.cleanIssue(issue,8)(2)
+  def getVolumeWF(issue: String) = if(issue == null) null else deleteZero.deleteZero(commonClean.cleanIssue(issue,8)(1))
+  def getIssueWF(issue: String) = if(issue == null) null else deleteZero.deleteZero(commonClean.cleanIssue(issue,8)(2))
 
   def getFullDataWFsql(hiveContext: HiveContext)={
 //    def getPage(issue: String) = commonClean.cleanIssue(issue,8)(2)
@@ -191,7 +191,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
 
 
 
-    val authorRdd :RDD[((String, String), Any)] = readDataLog("t_CandidateExpert", hiveContext)
+    val authorRdd :RDD[((String, String), Any)] = ReadData.readDataCERSv4("t_CandidateExpert", hiveContext)
       .map(row =>
         ((row.getString(row.fieldIndex("name"))
           , cutStr(row.getString(row.fieldIndex("organization")),4)),
@@ -267,7 +267,7 @@ def chooseNotNull(str1: String,str2: String) : String ={
     data
       .map(r =>(
       getRowString(r,"id"),
-      ((cleanKeyword(getRowString(r,"creatorAll")), cleanKeyword(getRowString(r,"instituteAll"))),
+      ((cleanKeyword(getRowString(r,"creatorAll")), cnkiOps.cleanInstitute(cleanKeyword(getRowString(r,"instituteAll")))),
         (cleanKeyword(getRowString(r,"keyWord")), null,
           getRowString(r,"subject"), getRowString(r,"id"),
           getRowString(r,"journal"))

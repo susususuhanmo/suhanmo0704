@@ -37,7 +37,7 @@ object mainVIP {
       //    (key, (title, journal, creator, id, institute,year))
 
       val orgjournaldata = commonClean.readDataOrg("t_VIP_UPDATE", hiveContext)
-        .filter("status = 0").limit(1000).cache()
+        .filter("status != 1 and status != 3 and year =2017").limit(50000).cache()
       orgjournaldata.registerTempTable("t_orgjournaldataVIP")
 
 

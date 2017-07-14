@@ -62,7 +62,7 @@ object getFirstLevelOrgan {
 
 
   def main(args: Array[String]) {
-    println(getFirstLevelOrgan("国家知识产权局专利局专利审查协作北京中心"))
+    println(getFirstLevelOrgan("北京化工大学 材料电化学过程重点实验室,北京 100029"))
   }
 
 

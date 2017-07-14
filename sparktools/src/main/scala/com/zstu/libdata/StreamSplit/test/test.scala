@@ -1,39 +1,34 @@
 package com.zstu.libdata.StreamSplit.test
 
+import com.zstu.libdata.StreamSplit.function.CommonTools.splitStr
+
 /**
   * Created by Administrator on 2017/6/14 0014.
   */
 
 
 object test {
-  def cleanWfIssue(issue: String): Array[String] = {
-    var array: Array[String] = null
-    if (issue == null) return null
-    //2016, 26(8)
-    val issues = issue.substring(issue.indexOf(" "), issue.indexOf("("))
-    println(issues.length)
-    println(issues)
-    if (issues.length == 1) {
-      val regex =
-        """([0-9]{4}),.([\S]+).""".r
-      val regex(issue_year, first) = issue
-      array = Array(issue_year, first)
+
+  def cleanInstitute(institute: String): String ={
+    def getStrBefore(str: String):String={
+      if(str == null) null
+      else {
+        val rtn = str.replace("，",",")
+        println(rtn)
+        if(rtn.indexOf(",") >=0) {
+          println(rtn.indexOf(","))
+          rtn.substring(0,rtn.indexOf(","))
+
+        }
+        else rtn
+      }
     }
-    if (issues.length == 2) {
-      val regex =
-        """([0-9]{4}),.([\S]{1}).([\S]+).""".r
-      val regex(issue_year, first, second) = issue
-      array = Array(issue_year, first, second)
-    }
-    if (issues.length == 3) {
-      val regex =
-        """([0-9]{4}),.([\S]{2}).([\S]+).""".r
-      val regex(issue_year, first, second) = issue
-      array = Array(issue_year, first, second)
-    }
-    array
+    if(institute == null) null
+    else splitStr(institute).map(getStrBefore(_).trim).reduce(_+";"+_)
   }
   def main(args: Array[String]): Unit = {
-    cleanWfIssue("2016, (2)")
-  }
+    val a = cleanInstitute("敦煌研究院保护研究所，甘肃 敦煌 736200")
+    println(a)
+    }
+
 }
