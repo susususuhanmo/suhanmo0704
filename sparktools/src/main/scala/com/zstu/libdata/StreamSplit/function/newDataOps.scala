@@ -1,5 +1,6 @@
 package com.zstu.libdata.StreamSplit.function
 
+import com.zstu.libdata.StreamSplit.kafka.cnkiClean
 import com.zstu.libdata.StreamSplit.splitAuthor.splitAuthorFunction.splitRddNew
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -376,7 +377,7 @@ object newDataOps {
   case class operateAndSource(operater: Int, source: Int)
 
   def dealNewData0623(fullInputData: DataFrame,
-                      sourceCoreRdd: RDD[(String, String)],
+                      sourceCoreRdd: RDD[(String)],
                       journalMagSourceRdd: RDD[(String, String)],
                       simplifiedJournalRdd: RDD[(String, (String, String, String, String, String, String, String, String))],
                       types: Int,
@@ -390,6 +391,23 @@ object newDataOps {
 
   = {
 
+val coreJournals: Array[(String)] = sourceCoreRdd.collect()
+    def isCore(journalDirty: String) : Int ={
+
+      if(journalDirty == null) 0
+      else {
+        val journal =  cnkiClean.cleanJournal(journalDirty)
+        for(coreJournalInfo <- coreJournals){
+          val coreJournal = coreJournalInfo
+
+          if(coreJournal == journal
+          ) return 1
+//          if(issn!= null && coreIssn != null && issn == coreIssn)
+//            return 1
+        }
+        0
+      }
+    }
 
     // fullData 当前拥有列
     // (id, title, titleAlt, creator, creatorAlt, creatorAll, keyWord,
@@ -424,7 +442,7 @@ object newDataOps {
     //入库(完整字段）
 
     val magData = getData.getMagData(hiveContext: HiveContext)
-    val coreData = getData.getCoreData(hiveContext: HiveContext)
+//    val coreData = getData.getCoreData(hiveContext: HiveContext)
 
     val noMatchFullData = fullInputData.join(resultNomatchData,
       fullInputData("id") === resultNomatchData("idNoMatch"))
@@ -443,7 +461,8 @@ object newDataOps {
     //      "select *,judgeIsCore(journal) as isCore from noMatchFullData")
 
     val journalRdd = noMatchFullData.map(row => row.getString(row.fieldIndex("journal"))).distinct()
-    val journalCoreData = hiveContext.createDataFrame(journalRdd.map(value => journalCoreJudge(value, isCore.isCore(value))))
+
+    val journalCoreData = hiveContext.createDataFrame(journalRdd.map(value => journalCoreJudge(value, isCore(value))))
 
     val noMatchFullDataWithCore = noMatchFullData.join(journalCoreData,
       noMatchFullData("journal") === journalCoreData("journalName"), "left")
@@ -481,12 +500,13 @@ object newDataOps {
 
     //    WriteData.writeDataStream("t_JournalLog",resultData)
 
-    WriteData.writeDataLog("t_JournalLog", resultData)
+    WriteData.writeDataLog("t_JournalLog2", resultData)
     //    WriteData.writeDataDiscoveryV2("t_JournalLog",resultData
     //      .drop("candidateResources").drop("subject").filter("isCore = 1"))
 
     printLog.logUtil("resultData" + resultData.count())
     authorRdd
+
 
     /** ****** 相似度小于90的处理结束 *******/
   }

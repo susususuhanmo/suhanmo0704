@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.zstu.libdata.StreamSplit.KafkaDataClean.ParseCleanUtil
-import com.zstu.libdata.StreamSplit.function.getData
+import com.zstu.libdata.StreamSplit.function.{cnkiOps, getData}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.{DataFrame, Row}
@@ -153,8 +153,13 @@ object commonClean {
     val id = r.getString(r.fieldIndex("GUID"))
     var creator =r.getString(r.fieldIndex("creator"))
     var title=r.getString(r.fieldIndex("title"))
+
+
+    //todo journal 和 originalJournal 分开处理
     var journal =r.getString(r.fieldIndex("journal"))
-    //var journal2 =r.getString(r.fieldIndex("journal2"))
+    var journal2 =r.getString(r.fieldIndex("journal2"))
+    journal = getData.getChineseJournal(journal,journal2)
+    journal =cnkiOps.cleanJournal(journal)
     val year=r.getString(r.fieldIndex("year"))
     var institute =r.getString(r.fieldIndex("institute"))
     var issue = r.getString(r.fieldIndex("issue"))
@@ -236,6 +241,7 @@ object commonClean {
     if( journal !="" && journal !=null) journal = cnkiClean.cleanJournal(journal)
     if( journal2 !="" && journal2 !=null) journal2 = cnkiClean.cleanJournal(journal2)
     if (journal == null || journal.equals(""))     journal = journal2
+    journal = cnkiOps.cleanJournal(journal)
     if(institute !="" && institute !=null)      institute = cnkiClean.getFirstInstitute(cnkiClean.cleanInstitute(institute))
     val key = cutStr(title, 6) + cutStr(journal, 4)
     (key, (title, journal, creator, id,institute,year,issue,volume))
@@ -295,6 +301,7 @@ object commonClean {
     if( journal !="" && journal !=null) journal = cnkiClean.cleanJournal(journal)
     if( journal2 !="" && journal2 !=null) journal2 = cnkiClean.cleanJournal(journal2)
     if (journal == null || journal.equals(""))     journal = journal2
+    journal = cnkiOps.cleanJournal(journal)
     if( institute!="" && institute !=null) institute = cnkiClean.getFirstInstitute(cnkiClean.cleanInstitute(institute))
     if(abstractcont !="" && abstractcont !=null) abstractcont = cnkiClean.getChineseAbstract(abstractcont)
     if(abstractcont_alt !="" && abstractcont_alt !=null) abstractcont_alt = cnkiClean.getEnglishAbstract(abstractcont_alt)

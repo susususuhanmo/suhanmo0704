@@ -29,7 +29,7 @@ object CommonTools {
           .replace(",", separator)
           .replace(";", separator)
           .replace("，", separator)
-          .replace("!|", separator), separator)
+          .replace("|!", separator), separator)
         .split(separator)
         .map(trimStr)
     else

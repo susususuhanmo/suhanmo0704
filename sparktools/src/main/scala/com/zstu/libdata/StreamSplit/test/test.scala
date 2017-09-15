@@ -27,8 +27,15 @@ object test {
     else splitStr(institute).map(getStrBefore(_).trim).reduce(_+";"+_)
   }
   def main(args: Array[String]): Unit = {
-    val a = cleanInstitute("敦煌研究院保护研究所，甘肃 敦煌 736200")
-    println(a)
+
+
+    var subjectsCleaned = "fdsa;fdsa;"
+    if(subjectsCleaned(subjectsCleaned.length - 1) == ';'){
+      subjectsCleaned = subjectsCleaned.substring(0,subjectsCleaned.length -1)
+    }
+
+    print(subjectsCleaned)
+
     }
 
 }

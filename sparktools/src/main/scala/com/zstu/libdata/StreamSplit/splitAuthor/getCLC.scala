@@ -20,7 +20,7 @@ object getCLC {
   case class codeIdCodeName(codeId: String, code: String, subject: String)
 
   /**
-    * 程序通过CLCCCD对应RDD，为输入inputData表增加subjects一列(classifications匹配到的中文名)
+    * 程序通过CLCCCD对应RDD，为输入inputData表增加subject一列(classifications匹配到的中文名)
     *
     * @param inputData   输入DataFrame 要求有classifications的列
     * @param CLCRdd      CLC对应RDD 格式为  (code第一位,(code，name))

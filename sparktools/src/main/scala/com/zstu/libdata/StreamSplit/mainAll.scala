@@ -21,28 +21,28 @@ object mainAll {
   var finishedVIP = false
   var finishedWF = false
   var dayCount = 0
-  var todayRun = Array("CNKI", "WF", "VIP")
+  var todayRun = Array("VIP","WF", "CNKI")
 
 
   def main(args: Array[String]) {
     val hiveContext = initSpark("mainALL")
-
-//    run("CNKI",hiveContext)
-////    run("VIP",hiveContext)
-////    run("WF",hiveContext)
-
+        run("CNKI",hiveContext)
+    run("VIP",hiveContext)
+    run("WF",hiveContext)
 
 
-    while (true) {
-      val runSource = refreshDate
-      if (runSource != null) {
-        while(DateTime.now().hourOfDay().get() != 15)
-          {Thread.sleep(1000*60*30)}
-        run(runSource, hiveContext)
-      }
-    }
 
-
+//    while (true) {
+//
+//
+//
+//      val runSource = refreshDate
+//      if (runSource != null) {
+//        while(DateTime.now().hourOfDay().get() != 15)
+//          {Thread.sleep(1000*60*59)}
+//        run(runSource, hiveContext)
+//      }
+//    }
   }
 
 

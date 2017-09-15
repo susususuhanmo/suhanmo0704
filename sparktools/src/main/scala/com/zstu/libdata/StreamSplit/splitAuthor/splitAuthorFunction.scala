@@ -401,7 +401,7 @@ object splitAuthorFunction {
         if (value._6 == "0") false else true,
         value._7, value._8)
     ))
-    writeDataLog("t_PaperAuthorLog", paperAuthorData)
+//    writeDataLog("t_PaperAuthorLog", paperAuthorData)
     val paperAuthorId = paperAuthorData.select("authorId")
 
     val finalAuthorData = resultAuthorData.join(paperAuthorId,
@@ -410,7 +410,7 @@ object splitAuthorFunction {
       .drop("authorId")
       .distinct()
 
-    writeDataLog("t_ExpertLog", finalAuthorData)
+//    writeDataLog("t_ExpertLog", finalAuthorData)
 
 
     val candidateResourceRdd = paperAuthorRdd.map(value =>
@@ -418,7 +418,7 @@ object splitAuthorFunction {
     val candidateResourceData = hiveContext.createDataFrame(
       candidateResourceRdd.map(value => candidateResource(value._1, value._2, value._3))
     )
-    writeDataLog("t_CandidateResourceLog", candidateResourceData)
+//    writeDataLog("t_CandidateResourceLog", candidateResourceData)
     //    (paperId,name,organ,partOrgan,journal,isFirst,firstLevelOrgan
     // ,authorId,any:(keywordNew,keywordAltNew,subjectNew,paperId,journal))
 
@@ -440,7 +440,7 @@ object splitAuthorFunction {
     val keyWordResultDataWithYear = keyWordResultData.join(yearData,
       keyWordResultData("paperid") === yearData("id"), "left")
       .drop("id").drop("isCheck")
-    writeDataLog("t_KeywordLog", keyWordResultDataWithYear)
+//    writeDataLog("t_KeywordLog", keyWordResultDataWithYear)
     //    (paperId,name,organ,partOrgan,journal,isFirst,firstLevelOrgan
     // ,authorId,any:(keywordNew,keywordAltNew,subjectNew,paperId,journal))
 

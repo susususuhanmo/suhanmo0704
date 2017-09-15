@@ -331,4 +331,9 @@ object ParseCleanUtil {
     val array: Array[String] = Array(issue_year, issue_row, issue_term)
     array
   }
+
+  def main(args: Array[String]): Unit = {
+    val a = cleanVipIssue("2017年第2卷第2期 160-164页,共-155页")
+    a.foreach(println)
+  }
 }

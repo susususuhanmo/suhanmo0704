@@ -37,7 +37,9 @@ object mainCNKI {
       //    (key, (title, journal, creator, id, institute,year))
 
       val orgjournaldata = commonClean.readDataOrg("t_CNKI_UPDATE", hiveContext)
-        .filter("status != 1 and status != 3 and year =2017").limit(50000).cache()
+        .filter("status != 1 and status != 3 and year =2017")
+        .limit(50000)
+        .cache()
 
       orgjournaldata.registerTempTable("t_orgjournaldataCNKI")
       val fullInputData = addCLCName(getData.getFullDataCNKIsql(hiveContext), clcRdd, hiveContext)
@@ -49,7 +51,7 @@ object mainCNKI {
       // val simplifiedInputRdd =getSimplifiedInputRdd(CNKIData)
       logUtil("简化后的数据" + simplifiedInputRdd.count())
 
-      WriteData.writeErrorData(repeatedRdd, types, hiveContext)
+//      WriteData.writeErrorData(repeatedRdd, types, hiveContext)
       logUtil("重复数据写入" + repeatedRdd.count())
 
 
@@ -64,7 +66,7 @@ object mainCNKI {
       val (rightInputRdd, errorRdd) = getRightRddAndReportError(simplifiedInputRdd, hiveContext)
       logUtil("正常数据" + rightInputRdd.count())
 
-      WriteData.writeErrorData(errorRdd, types, hiveContext)
+//      WriteData.writeErrorData(errorRdd, types, hiveContext)
 
       //开始查重 join group
       val inputJoinJournalRdd = rightInputRdd.leftOuterJoin(simplifiedJournalRdd)
@@ -91,18 +93,18 @@ object mainCNKI {
       //        .filter("status = 0").filter("year = 2017").limit(30000)
 
 
-      val logData = hiveContext.sql("select GUID as id," + types + " as resource from t_orgjournaldataCNKI")
-      logUtil("写入Log表" + logData.count())
-      WriteData.writeDataWangzhihong("t_Log", logData)
+
 
       //      //处理旧数据
       //      val num = dealOldData(inputJoinJournalRdd, fullInputRdd, sourceCoreRdd
       //        , journalMagSourceRdd, simplifiedJournalRdd, types)
-      val num = oldDataOps.dealOldData(fullInputData, types, inputJoinJournalRdd
+      val num = oldDataOps.dealOldData(fullInputData,sourceCoreRdd, types, inputJoinJournalRdd
         , hiveContext)
       logUtil("匹配成功的旧数据处理成功" + num)
 
-
+      val logData = hiveContext.sql("select GUID as id," + types + " as resource from t_orgjournaldataCNKI")
+      logUtil("写入Log表" + logData.count())
+//      WriteData.writeDataWangzhihong("t_Log", logData)
     } catch {
       case ex: Exception => logUtil(ex.getMessage)
     }

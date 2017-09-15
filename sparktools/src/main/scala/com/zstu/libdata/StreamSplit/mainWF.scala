@@ -36,8 +36,7 @@ object mainWF {
         .filter("status != 1 and status != 3 and year =2017").limit(50000).cache()
       orgjournaldata.registerTempTable("t_orgjournaldataWF")
 
-      val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataWF")
-      WriteData.writeDataWangzhihong("t_Log",logData)
+
 
 
       logUtil("全部数据" + orgjournaldata.count())
@@ -47,12 +46,12 @@ object mainWF {
       logUtil("简化后的数据" + simplifiedInputRdd.count())
 
 
-      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
+//      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
       logUtil("重复数据写入" + repeatedRdd.count())
 
       val fullInputData = addCLCName(getData.getFullDataWFsql(hiveContext),clcRdd,hiveContext)
 
-      hiveContext.dropTempTable("t_orgjournaldataWF")
+
 
 
 
@@ -69,7 +68,7 @@ object mainWF {
       val (rightInputRdd,errorRdd) = getRightRddAndReportError(simplifiedInputRdd, hiveContext)
       logUtil("正常数据" + rightInputRdd.count())
 
-      WriteData.writeErrorData(errorRdd,types,hiveContext)
+//      WriteData.writeErrorData(errorRdd,types,hiveContext)
 
 
 
@@ -95,11 +94,13 @@ object mainWF {
       //处理旧数据
 
 
-      val num = oldDataOps.dealOldData(fullInputData, types, inputJoinJournalRdd
+      val num = oldDataOps.dealOldData(fullInputData,sourceCoreRdd, types, inputJoinJournalRdd
         , hiveContext)
       logUtil("匹配成功的旧数据处理成功" + num)
       logUtil("---------")
-
+      val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataWF")
+//      WriteData.writeDataWangzhihong("t_Log",logData)
+      hiveContext.dropTempTable("t_orgjournaldataWF")
     } catch {
       case ex: Exception => logUtil(ex.getMessage)
     }

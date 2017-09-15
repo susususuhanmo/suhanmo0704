@@ -69,12 +69,29 @@ case class journalCoreJudge(journalName: String,isCore: Int)
   case class noMatchData (idNoMatch: String,otherId:String)
   case class operateAndSource(operater:Int,source:Int)
   def dealOldData(fullInputData: DataFrame,
+                  sourceCoreRdd: RDD[(String)],
                        types: Int,
                       inputJoinJournalRdd: RDD[(String, ((String, String, String, String, String, String,String,String), Option[(String, String, String, String, String, String,String,String)]))],
                       hiveContext: HiveContext
                 ): Int
 
   = {
+
+    val coreJournals = sourceCoreRdd.collect()
+    def isCore(journal: String) : Int ={
+      if(journal == null) 0
+      else {
+        for(coreJournalInfo <- coreJournals){
+          val coreJournal = coreJournalInfo
+
+          if(coreJournal == journal
+          ) return 1
+//          if(issn!= null && coreIssn != null && issn == coreIssn)
+//            return 1
+        }
+        0
+      }
+    }
 
 
 //    val rdd_kafka_result_notmatch = joinedGroupedRdd.map(f => (f._1, f._2.take(1).toList.apply(0)._1))
@@ -101,7 +118,8 @@ case class journalCoreJudge(journalName: String,isCore: Int)
 
 
     val journalRdd = noMatchFullData.map(row => row.getString(row.fieldIndex("journal"))).distinct()
-    val journalCoreData = hiveContext.createDataFrame(journalRdd.map(value => journalCoreJudge(value,isCore.isCore(value))))
+
+    val journalCoreData = hiveContext.createDataFrame(journalRdd.map(value => journalCoreJudge(value,isCore(value))))
 
     val noMatchFullDataWithCore = noMatchFullData.join(journalCoreData,
       noMatchFullData("journal") === journalCoreData("journalName"), "left")
@@ -115,7 +133,7 @@ case class journalCoreJudge(journalName: String,isCore: Int)
     val resultData = noMatchFullDataWithMag.join(operateSourceData)
 
 
-    WriteData.writeDataLog("t_JournalLog",resultData)
+    WriteData.writeDataLog("t_JournalLog2",resultData)
 
 //    WriteData.writeDataDiscoveryV2("t_JournalLog",resultData
 //      .drop("candidateResources").drop("subject").filter("isCore = 1"))

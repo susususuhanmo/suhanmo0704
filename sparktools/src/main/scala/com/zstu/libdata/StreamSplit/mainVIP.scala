@@ -42,8 +42,7 @@ object mainVIP {
 
 
 
-      val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataVIP")
-      WriteData.writeDataWangzhihong("t_Log",logData)
+
 
       val fullInputData=  addCLCName(getData.getFullDataVIPsql(hiveContext),clcRdd,hiveContext)
 
@@ -53,11 +52,11 @@ object mainVIP {
         distinctRdd.distinctInputRdd(orgjournaldata.map(f =>commonClean.transformRdd_vip_simplify(f)))
 
 
-      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
+//      WriteData.writeErrorData(repeatedRdd,types,hiveContext)
       logUtil("重复数据写入" + repeatedRdd.count())
 
 
-      hiveContext.dropTempTable("t_orgjournaldataVIP")
+
       // val simplifiedInputRdd =getSimplifiedInputRdd(CNKIData)
       logUtil("简化后的数据" + simplifiedInputRdd.count())
       val forSplitRdd =getForSplitRdd(fullInputData)
@@ -96,7 +95,7 @@ object mainVIP {
       val (rightInputRdd,errorRdd) = getRightRddAndReportError(simplifiedInputRdd, hiveContext)
       logUtil("正常数据" + rightInputRdd.count())
 
-      WriteData.writeErrorData(errorRdd,types,hiveContext)
+//      WriteData.writeErrorData(errorRdd,types,hiveContext)
 
 
       //开始查重 join group
@@ -120,10 +119,12 @@ object mainVIP {
       //处理旧数据
 //      val num = dealOldData(inputJoinJournalRdd, fullInputRdd, sourceCoreRdd
 //        , journalMagSourceRdd, simplifiedJournalRdd, types)
-      val num = oldDataOps.dealOldData(fullInputData, types, inputJoinJournalRdd
+      val num = oldDataOps.dealOldData(fullInputData,sourceCoreRdd, types, inputJoinJournalRdd
         , hiveContext)
       logUtil("匹配成功的旧数据处理成功" + num)
-
+      val logData = hiveContext.sql("select GUID as id,"+types+" as resource from t_orgjournaldataVIP")
+//      WriteData.writeDataWangzhihong("t_Log",logData)
+      hiveContext.dropTempTable("t_orgjournaldataVIP")
     }catch {
       case ex: Exception => logUtil(ex.getMessage)
     }

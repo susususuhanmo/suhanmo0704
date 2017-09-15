@@ -89,7 +89,7 @@ object cnkiClean {
     val ischinese = CheckChinese.CheckChinese(author.toString())
     if(ischinese == 2){ //如果是中文
       author_tmp = deleteInvisibleChar.deleteInvisibleChar(author_tmp)
-      author_tmp=  GetReplacedStr.GetReplacedStr(author_tmp)
+      author_tmp=  GetReplacedStr.GetReplacedStrOld(author_tmp)
     }
 
     if(author_tmp !=""){
@@ -145,7 +145,7 @@ object cnkiClean {
     if(ischinese == 2){ //如果是中文
 
       author_tmp = deleteInvisibleChar.deleteInvisibleChar(author_tmp)
-      author_tmp=  GetReplacedStr.GetReplacedStr(author_tmp)
+      author_tmp=  GetReplacedStr.GetReplacedStrOld(author_tmp)
     }else{
 
     }

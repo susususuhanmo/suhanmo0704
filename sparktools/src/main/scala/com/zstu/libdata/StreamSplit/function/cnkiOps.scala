@@ -1,7 +1,6 @@
 package com.zstu.libdata.StreamSplit.function
 
-import com.zstu.libdata.StreamSplit.KafkaDataClean.ParseCleanUtil
-import CommonTools.{hasNoChinese, splitStr}
+import com.zstu.libdata.StreamSplit.function.CommonTools.{hasNoChinese, splitStr}
 /**
   * Created by xiangjh on 2017/4/2.
   */
@@ -39,7 +38,7 @@ object cnkiOps {
 
     var author_tmp = deleteInvisibleChar.deleteInvisibleChar(author.toString)
       .replace("@@","")
-    author_tmp=  GetReplacedStr.GetReplacedStr(author_tmp)
+    author_tmp=  GetReplacedStr.GetReplacedStrOld(author_tmp)
     var creators: Array[String] = author_tmp.split("\\|!")
     if (creators.length ==1){
       creators  = author_tmp.split("\\;;")
@@ -139,21 +138,13 @@ object cnkiOps {
     */
   def cleanJournal(journal: String): String = {
     var journals = journal
-    val ischinese = CheckChinese.CheckChinese(journal)
-    if(ischinese == 2){//中文
+    if (journals == null) {
+      return null
+    }
       journals = deleteInvisibleChar.deleteInvisibleChar(journal)
       journals = GetReplacedStr.GetReplacedStr(journals)
-      if (journals == null) {
-        return null
-      }
-    }
-    journals
-    /*val result = CheckChinese.CheckChinese(journals)
-    if (result == 1) {
-      return null
-    } else {
       journals
-    }*/
+
   }
   /**
     * 获取中文期刊名
@@ -177,10 +168,7 @@ object cnkiOps {
 
   def main(args: Array[String]): Unit = {
   //  2016年第0卷第1期 9-页,共1页
-    val str = "2016年第8期 8-8页,共1页"
-    val array:Array[String]=ParseCleanUtil.cleanVipIssue(str)
-    for(i <- array.indices)
-      println(array(i))
+  println(cleanJournal("dsa房间打扫123￥%……&*（"))
   }
 
 
